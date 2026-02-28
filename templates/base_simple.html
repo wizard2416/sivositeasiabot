@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}لوحة التحكم{% endblock %} - Sivosys</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 'arabic': ['IBM Plex Sans Arabic', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7c3aed',
+                            800: '#6b21a8',
+                            900: '#581c87'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+        html[dir="ltr"] * { font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+    <header class="bg-gradient-to-l from-violet-600 to-purple-700 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                    <i class="ri-dashboard-3-line text-white text-lg"></i>
+                </div>
+                <span class="font-bold text-lg text-white">Sivosys</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleLang()" class="px-3 py-1.5 text-sm rounded-lg bg-white/20 text-white hover:bg-white/30" id="lang-btn">EN</button>
+                <a href="/admin/logout" class="px-3 py-1.5 text-sm rounded-lg text-white/80 hover:bg-white/20">
+                    <i class="ri-logout-box-line"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="max-w-6xl mx-auto px-4 py-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="mb-4 p-3 rounded-lg flex items-center gap-2 text-sm {% if category == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% elif category == 'error' or category == 'danger' %}bg-rose-50 text-rose-700 border border-rose-200{% else %}bg-violet-50 text-violet-700 border border-violet-200{% endif %}">
+                    <i class="{% if category == 'success' %}ri-check-line{% else %}ri-info-i{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <script>
+        let lang = localStorage.getItem('lang') || 'ar';
+        function toggleLang() {
+            lang = lang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('lang', lang);
+            document.getElementById('html-root').dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('html-root').lang = lang;
+            document.getElementById('lang-btn').textContent = lang === 'ar' ? 'EN' : 'عربي';
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + lang);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('html-root').dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('lang-btn').textContent = lang === 'ar' ? 'EN' : 'عربي';
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + lang);
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

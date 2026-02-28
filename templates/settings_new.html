@@ -1,0 +1,390 @@
+{% extends "base_simple.html" %}
+
+{% block title %}الإعدادات{% endblock %}
+{% block page_title %}<span data-ar="مركز التحكم" data-en="Control Center">مركز التحكم</span>{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+    <a href="/admin/users" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-primary-100 flex items-center justify-center mb-3 group-hover:bg-primary-500 transition-colors">
+            <i class="ri-group-line text-2xl text-primary-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="المستخدمين" data-en="Users">المستخدمين</p>
+        <p class="text-sm text-slate-500">{{ stats.total_users }}</p>
+    </a>
+    
+    <a href="/admin/users/pending" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group relative">
+        {% if stats.get('pending_users', 0) > 0 %}
+        <span class="absolute top-3 right-3 w-5 h-5 rounded-full bg-warning-500 text-white text-xs flex items-center justify-center">{{ stats.pending_users }}</span>
+        {% endif %}
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-warning-100 flex items-center justify-center mb-3 group-hover:bg-warning-500 transition-colors">
+            <i class="ri-user-add-line text-2xl text-warning-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="طلبات الانضمام" data-en="Pending Approvals">طلبات الانضمام</p>
+        <p class="text-sm text-slate-500" data-ar="قيد الانتظار" data-en="Waiting">قيد الانتظار</p>
+    </a>
+    
+    <a href="/admin/payments" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group relative">
+        {% if stats.get('pending_payments', 0) > 0 %}
+        <span class="absolute top-3 right-3 w-5 h-5 rounded-full bg-danger-500 text-white text-xs flex items-center justify-center">{{ stats.pending_payments }}</span>
+        {% endif %}
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-success-100 flex items-center justify-center mb-3 group-hover:bg-success-500 transition-colors">
+            <i class="ri-wallet-3-line text-2xl text-success-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="الدفعات" data-en="Payments">الدفعات</p>
+        <p class="text-sm text-slate-500" data-ar="QI Card / ZainCash" data-en="QI Card / ZainCash">QI Card / ZainCash</p>
+    </a>
+    
+    <a href="/admin/cards" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center mb-3 group-hover:bg-slate-700 transition-colors">
+            <i class="ri-bank-card-line text-2xl text-slate-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="البطاقات" data-en="Cards">البطاقات</p>
+        <p class="text-sm text-slate-500">{{ stats.verified_cards }} <span data-ar="ناجحة" data-en="verified">ناجحة</span></p>
+    </a>
+    
+    <a href="/admin/phones" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-purple-100 flex items-center justify-center mb-3 group-hover:bg-purple-500 transition-colors">
+            <i class="ri-smartphone-line text-2xl text-purple-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="الأجهزة" data-en="Devices">الأجهزة</p>
+        <p class="text-sm text-slate-500">{{ stats.online_phones }} <span data-ar="متصل" data-en="online">متصل</span></p>
+    </a>
+    
+    <a href="/admin/xena" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-pink-100 flex items-center justify-center mb-3 group-hover:bg-pink-500 transition-colors">
+            <i class="ri-gamepad-line text-2xl text-pink-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="Xena Live" data-en="Xena Live">Xena Live</p>
+        <p class="text-sm text-slate-500" data-ar="طلبات العملات" data-en="Coin Orders">طلبات العملات</p>
+    </a>
+    
+    <a href="/admin/usd" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-colors">
+            <i class="ri-money-dollar-circle-line text-2xl text-emerald-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="إدارة USD" data-en="USD Management">إدارة USD</p>
+        <p class="text-sm text-slate-500" data-ar="المستخدمين والسحوبات" data-en="Users & Withdrawals">المستخدمين والسحوبات</p>
+    </a>
+    
+    <a href="/admin/chats" class="bg-white rounded-2xl p-5 card-hover border border-slate-100 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-100 flex items-center justify-center mb-3 group-hover:bg-cyan-500 transition-colors">
+            <i class="ri-chat-3-line text-2xl text-cyan-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800" data-ar="المحادثات" data-en="Chats">المحادثات</p>
+        <p class="text-sm text-slate-500" data-ar="رسائل المستخدمين" data-en="User Messages">رسائل المستخدمين</p>
+    </a>
+    
+    <a href="/admin/activity" class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-3 group-hover:bg-orange-500 transition-colors">
+            <i class="ri-history-line text-2xl text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors"></i>
+        </div>
+        <p class="font-medium text-slate-800 dark:text-white" data-ar="سجل النشاط" data-en="Activity Log">سجل النشاط</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="جميع الإجراءات" data-en="All Actions">جميع الإجراءات</p>
+    </a>
+    
+    <a href="/admin/api-settings" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 card-hover border border-indigo-400/20 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:bg-white/30 transition-colors">
+            <i class="ri-plug-line text-2xl text-white"></i>
+        </div>
+        <p class="font-medium text-white" data-ar="إعدادات API" data-en="API Settings">إعدادات API</p>
+        <p class="text-sm text-white/70" data-ar="Xena / Asiacell" data-en="Xena / Asiacell">Xena / Asiacell</p>
+    </a>
+    
+    <a href="/admin/external-api" class="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl p-5 card-hover border border-violet-400/20 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:bg-white/30 transition-colors">
+            <i class="ri-link text-2xl text-white"></i>
+        </div>
+        <p class="font-medium text-white" data-ar="الربط الخارجي" data-en="External API">الربط الخارجي</p>
+        <p class="text-sm text-white/70" data-ar="ربط مواقع خارجية" data-en="Connect external sites">ربط مواقع خارجية</p>
+    </a>
+    
+    <a href="/admin/coin-rates" class="bg-gradient-to-br from-warning-500 to-orange-600 rounded-2xl p-5 card-hover border border-warning-400/20 text-center touch-target group">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:bg-white/30 transition-colors">
+            <i class="ri-exchange-line text-2xl text-white"></i>
+        </div>
+        <p class="font-medium text-white">أسعار العملات</p>
+        <p class="text-sm text-white/70">تحويل دينار ← عملات</p>
+    </a>
+    
+    <div id="hosting-status" class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 text-center touch-target cursor-pointer" onclick="checkHostingStatus()">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3" id="hosting-icon-container">
+            <i class="ri-server-line text-2xl text-slate-400" id="hosting-icon"></i>
+        </div>
+        <p class="font-medium text-slate-800 dark:text-white" data-ar="حالة الاستضافة" data-en="Hosting Status">حالة الاستضافة</p>
+        <p class="text-sm" id="hosting-status-text">
+            <span class="text-slate-400" data-ar="جاري الفحص..." data-en="Checking...">جاري الفحص...</span>
+        </p>
+        <p class="text-xs mt-1" id="ping-display">
+            <span class="text-slate-400">--</span>
+        </p>
+    </div>
+</div>
+
+<script>
+let hostingCheckInterval;
+let lastStatus = null;
+let alertShown = false;
+
+function checkHostingStatus() {
+    const startTime = performance.now();
+    const statusEl = document.getElementById('hosting-status');
+    const iconContainer = document.getElementById('hosting-icon-container');
+    const icon = document.getElementById('hosting-icon');
+    const statusText = document.getElementById('hosting-status-text');
+    const pingDisplay = document.getElementById('ping-display');
+    const isArabic = localStorage.getItem('lang') !== 'en';
+    
+    fetch('/api/health', { method: 'GET', cache: 'no-store' })
+        .then(response => {
+            const endTime = performance.now();
+            const ping = Math.round(endTime - startTime);
+            
+            if (response.ok) {
+                statusEl.className = 'bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 border border-emerald-400/20 text-center touch-target cursor-pointer';
+                iconContainer.className = 'w-14 h-14 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3';
+                icon.className = 'ri-check-line text-2xl text-white';
+                statusText.innerHTML = `<span class="text-white">${isArabic ? 'متصل' : 'Online'}</span>`;
+                pingDisplay.innerHTML = `<span class="text-white/70">${ping}ms</span>`;
+                
+                if (lastStatus === false && !alertShown) {
+                    showNotification(isArabic ? 'الخادم عاد للعمل!' : 'Server is back online!', 'success');
+                }
+                lastStatus = true;
+                alertShown = false;
+            } else {
+                throw new Error('Server error');
+            }
+        })
+        .catch(() => {
+            statusEl.className = 'bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-5 border border-red-400/20 text-center touch-target cursor-pointer animate-pulse';
+            iconContainer.className = 'w-14 h-14 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3';
+            icon.className = 'ri-error-warning-line text-2xl text-white';
+            statusText.innerHTML = `<span class="text-white">${isArabic ? 'غير متصل' : 'Offline'}</span>`;
+            pingDisplay.innerHTML = `<span class="text-white/70">--</span>`;
+            
+            if (lastStatus !== false && !alertShown) {
+                showNotification(isArabic ? 'تحذير: الخادم غير متصل!' : 'Warning: Server is offline!', 'error');
+                alertShown = true;
+                playAlertSound();
+            }
+            lastStatus = false;
+        });
+}
+
+function showNotification(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 ${
+        type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    } text-white font-medium`;
+    toast.innerHTML = `<i class="ri-${type === 'success' ? 'check-line' : 'error-warning-line'} text-xl"></i>${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s';
+        setTimeout(() => toast.remove(), 500);
+    }, 5000);
+}
+
+function playAlertSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        oscillator.start();
+        setTimeout(() => oscillator.stop(), 200);
+    } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkHostingStatus();
+    hostingCheckInterval = setInterval(checkHostingStatus, 30000);
+});
+</script>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-robot-line text-slate-400"></i>
+            <span data-ar="التحكم بالنظام" data-en="System Control">التحكم بالنظام</span>
+        </h3>
+        
+        <div class="space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-xl {% if bot_paused %}bg-danger-50 border border-danger-200{% else %}bg-success-50 border border-success-200{% endif %}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg {% if bot_paused %}bg-danger-500{% else %}bg-success-500{% endif %} flex items-center justify-center">
+                        <i class="{% if bot_paused %}ri-stop-circle-line{% else %}ri-robot-line{% endif %} text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800" data-ar="حالة البوت" data-en="Bot Status">حالة البوت</p>
+                        <p class="text-sm {% if bot_paused %}text-danger-600{% else %}text-success-600{% endif %}">
+                            {% if bot_paused %}
+                            <span data-ar="وضع الصيانة - المستخدمون يرون رسالة الصيانة" data-en="Maintenance Mode - Users see maintenance message">وضع الصيانة - المستخدمون يرون رسالة الصيانة</span>
+                            {% else %}
+                            <span data-ar="يعمل بشكل طبيعي" data-en="Running normally">يعمل بشكل طبيعي</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <form method="POST" action="/admin/settings/toggle-bot">
+                    <button type="submit" class="btn {% if bot_paused %}btn-primary{% else %}btn-danger{% endif %} text-sm">
+                        {% if bot_paused %}
+                        <i class="ri-play-line"></i>
+                        <span data-ar="تشغيل" data-en="Start">تشغيل</span>
+                        {% else %}
+                        <i class="ri-stop-line"></i>
+                        <span data-ar="إيقاف" data-en="Stop">إيقاف</span>
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+            
+            <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg {% if processing_paused %}bg-warning-500{% else %}bg-success-500{% endif %} flex items-center justify-center">
+                        <i class="{% if processing_paused %}ri-pause-circle-line{% else %}ri-play-circle-line{% endif %} text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800" data-ar="معالجة البطاقات" data-en="Card Processing">معالجة البطاقات</p>
+                        <p class="text-sm text-slate-500">
+                            {% if processing_paused %}
+                            <span data-ar="متوقف مؤقتاً - البطاقات لن تُعالج" data-en="Paused - Cards won't be processed">متوقف مؤقتاً - البطاقات لن تُعالج</span>
+                            {% else %}
+                            <span data-ar="يعالج البطاقات تلقائياً" data-en="Processing cards automatically">يعالج البطاقات تلقائياً</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <form method="POST" action="/admin/settings/toggle-processing">
+                    <button type="submit" class="btn {% if processing_paused %}btn-primary{% else %}btn-secondary{% endif %} text-sm">
+                        {% if processing_paused %}
+                        <i class="ri-play-line"></i>
+                        <span data-ar="استئناف" data-en="Resume">استئناف</span>
+                        {% else %}
+                        <i class="ri-pause-line"></i>
+                        <span data-ar="إيقاف مؤقت" data-en="Pause">إيقاف مؤقت</span>
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-megaphone-line text-slate-400"></i>
+            <span data-ar="إرسال رسالة جماعية" data-en="Broadcast Message">إرسال رسالة جماعية</span>
+        </h3>
+        
+        <form method="POST" action="/admin/settings/broadcast" enctype="multipart/form-data">
+            <div class="mb-4">
+                <textarea name="message" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all resize-none" placeholder="اكتب رسالتك هنا..." data-ar-placeholder="اكتب رسالتك هنا..." data-en-placeholder="Type your message here..."></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm text-slate-600 mb-2">
+                    <i class="ri-attachment-2"></i>
+                    <span data-ar="إرفاق ملف (اختياري)" data-en="Attach file (optional)">إرفاق ملف (اختياري)</span>
+                </label>
+                <input type="file" name="media" accept="image/*,video/*,audio/*" class="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100">
+            </div>
+            <button type="submit" class="btn btn-primary w-full">
+                <i class="ri-send-plane-line"></i>
+                <span data-ar="إرسال للجميع" data-en="Send to All">إرسال للجميع</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-bank-card-2-line text-slate-400"></i>
+            <span data-ar="أرقام الدفع" data-en="Payment Numbers">أرقام الدفع</span>
+        </h3>
+        
+        <form method="POST" action="/admin/settings/payment-numbers">
+            <div class="mb-4">
+                <label class="block text-sm text-slate-600 mb-2">
+                    <i class="ri-bank-card-line text-primary-500"></i>
+                    <span data-ar="رقم QI Card" data-en="QI Card Number">رقم QI Card</span>
+                </label>
+                <input type="text" name="qi_card_number" value="{{ qi_card_number }}" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" placeholder="07xxxxxxxxx">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm text-slate-600 mb-2">
+                    <i class="ri-smartphone-line text-success-500"></i>
+                    <span data-ar="رقم ZainCash" data-en="ZainCash Number">رقم ZainCash</span>
+                </label>
+                <input type="text" name="zaincash_number" value="{{ zaincash_number }}" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" placeholder="07xxxxxxxxx">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="ri-save-line"></i>
+                <span data-ar="حفظ" data-en="Save">حفظ</span>
+            </button>
+        </form>
+    </div>
+    
+    <div class="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-download-2-line text-slate-400"></i>
+            <span data-ar="تصدير البيانات" data-en="Export Data">تصدير البيانات</span>
+        </h3>
+        
+        <div class="grid grid-cols-1 gap-3">
+            <a href="/admin/export/users" class="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all touch-target">
+                <div class="flex items-center gap-3">
+                    <i class="ri-group-line text-primary-500"></i>
+                    <span data-ar="تصدير المستخدمين" data-en="Export Users">تصدير المستخدمين</span>
+                </div>
+                <i class="ri-download-line text-slate-400"></i>
+            </a>
+            <a href="/admin/export/cards" class="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all touch-target">
+                <div class="flex items-center gap-3">
+                    <i class="ri-bank-card-line text-success-500"></i>
+                    <span data-ar="تصدير البطاقات" data-en="Export Cards">تصدير البطاقات</span>
+                </div>
+                <i class="ri-download-line text-slate-400"></i>
+            </a>
+            <a href="/admin/export/xena" class="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all touch-target">
+                <div class="flex items-center gap-3">
+                    <i class="ri-gamepad-line text-pink-500"></i>
+                    <span data-ar="تصدير طلبات Xena" data-en="Export Xena Orders">تصدير طلبات Xena</span>
+                </div>
+                <i class="ri-download-line text-slate-400"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700">
+    <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <i class="ri-pie-chart-2-line text-slate-400"></i>
+        <span data-ar="إحصائيات النظام" data-en="System Statistics">إحصائيات النظام</span>
+    </h3>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 rounded-xl bg-slate-50 text-center">
+            <p class="text-2xl font-bold text-slate-800">{{ stats.total_users }}</p>
+            <p class="text-sm text-slate-500" data-ar="إجمالي المستخدمين" data-en="Total Users">إجمالي المستخدمين</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 text-center">
+            <p class="text-2xl font-bold text-slate-800">{{ stats.total_cards }}</p>
+            <p class="text-sm text-slate-500" data-ar="إجمالي البطاقات" data-en="Total Cards">إجمالي البطاقات</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 text-center">
+            <p class="text-2xl font-bold text-slate-800">{{ stats.verified_cards }}</p>
+            <p class="text-sm text-slate-500" data-ar="بطاقات ناجحة" data-en="Verified Cards">بطاقات ناجحة</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 text-center">
+            <p class="text-2xl font-bold text-success-600">{{ "{:,.0f}".format(stats.total_amount) }}</p>
+            <p class="text-sm text-slate-500" data-ar="إجمالي الشحن (IQD)" data-en="Total Recharged (IQD)">إجمالي الشحن (IQD)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

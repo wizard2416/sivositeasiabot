@@ -1,0 +1,203 @@
+{% extends "base_simple.html" %}
+
+{% block title %}External API{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/admin/settings" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary-600 transition-colors">
+        <i class="ri-arrow-right-line"></i>
+        <span data-ar="رجوع للإعدادات" data-en="Back to Settings">رجوع للإعدادات</span>
+    </a>
+</div>
+
+<div class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 mb-6 text-white">
+    <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
+            <i class="ri-link text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold" data-ar="الربط الخارجي (External API)" data-en="External API">الربط الخارجي (External API)</h1>
+            <p class="text-white/80" data-ar="ربط المواقع والتطبيقات الخارجية لإرسال بطاقات الشحن" data-en="Connect external websites and apps to submit recharge cards">ربط المواقع والتطبيقات الخارجية لإرسال بطاقات الشحن</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+        <div class="bg-white/10 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold">{{ stats.total_keys }}</div>
+            <div class="text-xs text-white/70" data-ar="مفاتيح API" data-en="API Keys">مفاتيح API</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold">{{ stats.total_cards }}</div>
+            <div class="text-xs text-white/70" data-ar="إجمالي البطاقات" data-en="Total Cards">إجمالي البطاقات</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-green-300">{{ stats.verified_cards }}</div>
+            <div class="text-xs text-white/70" data-ar="ناجحة" data-en="Verified">ناجحة</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-yellow-300">{{ stats.pending_cards }}</div>
+            <div class="text-xs text-white/70" data-ar="قيد المعالجة" data-en="Pending">قيد المعالجة</div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-ar="إنشاء مفتاح API جديد" data-en="Create New API Key">إنشاء مفتاح API جديد</h2>
+    <form action="/admin/external-api/create-key" method="POST" class="flex flex-col sm:flex-row gap-3">
+        <input type="text" name="key_name" placeholder="اسم المفتاح (مثال: موقع الشحن)" required
+               class="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+        <input type="url" name="webhook_url" placeholder="Webhook URL (اختياري)"
+               class="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+        <button type="submit" class="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-colors">
+            <i class="ri-add-line ml-1"></i>
+            <span data-ar="إنشاء" data-en="Create">إنشاء</span>
+        </button>
+    </form>
+</div>
+
+{% if api_keys %}
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-ar="مفاتيح API" data-en="API Keys">مفاتيح API</h2>
+    <div class="space-y-4">
+        {% for key in api_keys %}
+        <div class="border border-slate-200 dark:border-slate-600 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg font-semibold text-slate-800 dark:text-white">{{ key.key_name }}</span>
+                    {% if key.is_active %}
+                    <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">Active</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-medium">Disabled</span>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2">
+                    <form action="/admin/external-api/toggle-key/{{ key.id }}" method="POST" class="inline">
+                        <button type="submit" class="px-3 py-1 text-sm rounded-lg {{ 'bg-red-100 text-red-700 hover:bg-red-200' if key.is_active else 'bg-green-100 text-green-700 hover:bg-green-200' }} transition-colors">
+                            {{ 'تعطيل' if key.is_active else 'تفعيل' }}
+                        </button>
+                    </form>
+                    <form action="/admin/external-api/delete-key/{{ key.id }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا المفتاح؟')">
+                        <button type="submit" class="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 font-mono text-sm text-slate-600 dark:text-slate-300 break-all select-all cursor-pointer" title="انقر للنسخ">
+                {{ key.api_key }}
+            </div>
+            {% if key.webhook_url %}
+            <div class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                <i class="ri-webhook-line ml-1"></i> Webhook: {{ key.webhook_url }}
+            </div>
+            {% endif %}
+            <div class="mt-2 text-xs text-slate-400">
+                <span data-ar="تاريخ الإنشاء:" data-en="Created:">تاريخ الإنشاء:</span> {{ key.created_at | iraq_time }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-ar="طريقة الاستخدام" data-en="API Documentation">طريقة الاستخدام</h2>
+    <div class="space-y-4 text-sm">
+        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+            <h3 class="font-bold text-violet-600 dark:text-violet-400 mb-2">1. Submit a card</h3>
+            <pre class="text-slate-700 dark:text-slate-300 overflow-x-auto" dir="ltr"><code>POST /api/external/submit-card
+Headers: X-API-Key: your_api_key
+Body: {
+    "pin": "1234567890123456",
+    "external_ref": "your-reference-id",
+    "webhook_url": "https://your-site.com/webhook"
+}
+Response: {
+    "success": true,
+    "card_id": 123,
+    "status": "pending"
+}</code></pre>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+            <h3 class="font-bold text-violet-600 dark:text-violet-400 mb-2">2. Submit multiple cards</h3>
+            <pre class="text-slate-700 dark:text-slate-300 overflow-x-auto" dir="ltr"><code>POST /api/external/submit-cards
+Headers: X-API-Key: your_api_key
+Body: {
+    "cards": [
+        {"pin": "1234567890123456", "external_ref": "ref-1"},
+        {"pin": "9876543210987654", "external_ref": "ref-2"}
+    ],
+    "webhook_url": "https://your-site.com/webhook"
+}</code></pre>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+            <h3 class="font-bold text-violet-600 dark:text-violet-400 mb-2">3. Check card status</h3>
+            <pre class="text-slate-700 dark:text-slate-300 overflow-x-auto" dir="ltr"><code>GET /api/external/card-status/{card_id}
+Headers: X-API-Key: your_api_key
+Response: {
+    "card_id": 123,
+    "status": "verified",
+    "amount": 5000,
+    "result_message": "..."
+}</code></pre>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+            <h3 class="font-bold text-violet-600 dark:text-violet-400 mb-2">4. Webhook callback</h3>
+            <pre class="text-slate-700 dark:text-slate-300 overflow-x-auto" dir="ltr"><code>// Your webhook receives POST:
+{
+    "card_id": 123,
+    "external_ref": "your-reference-id",
+    "status": "verified" | "failed",
+    "amount": 5000,
+    "result_message": "..."
+}</code></pre>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+            <h3 class="font-bold text-violet-600 dark:text-violet-400 mb-2">5. List all cards</h3>
+            <pre class="text-slate-700 dark:text-slate-300 overflow-x-auto" dir="ltr"><code>GET /api/external/cards?status=pending&limit=50
+Headers: X-API-Key: your_api_key</code></pre>
+        </div>
+    </div>
+</div>
+
+{% if recent_cards %}
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4" data-ar="آخر البطاقات المُرسلة" data-en="Recent External Cards">آخر البطاقات المُرسلة</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-600">
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">ID</th>
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">المصدر</th>
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">المرجع</th>
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">الحالة</th>
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">المبلغ</th>
+                    <th class="py-3 px-3 text-right text-slate-500 dark:text-slate-400 font-medium">التاريخ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in recent_cards %}
+                <tr class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <td class="py-3 px-3 font-mono text-slate-700 dark:text-slate-300">#{{ card.card_id }}</td>
+                    <td class="py-3 px-3 text-slate-700 dark:text-slate-300">{{ card.api_key_name or '-' }}</td>
+                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs">{{ card.external_ref or '-' }}</td>
+                    <td class="py-3 px-3">
+                        {% if card.status == 'verified' or card.card_status == 'verified' %}
+                        <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs">ناجح</span>
+                        {% elif card.status == 'failed' or card.card_status == 'failed' %}
+                        <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs">فشل</span>
+                        {% elif card.card_status == 'processing' %}
+                        <span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs">معالجة</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs">قيد الانتظار</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3 text-slate-700 dark:text-slate-300">{{ card.card_amount or card.amount or 0 }} IQD</td>
+                    <td class="py-3 px-3 text-slate-400 text-xs">{{ card.created_at | iraq_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Dashboard - Asiacell Bot</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #00d4aa; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 12px 16px; border: 1px solid #333; border-radius: 8px; background: #1a1a1a; color: #fff; font-size: 16px; }
+        .search-box input:focus { outline: none; border-color: #00d4aa; }
+        .search-box button { padding: 12px 24px; background: #00d4aa; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .search-box button:hover { background: #00b894; }
+        .user-list { display: flex; flex-direction: column; gap: 10px; }
+        .user-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #1a1a1a; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .user-card:hover { background: #252525; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 48px; height: 48px; background: #00d4aa; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; }
+        .user-details h3 { margin-bottom: 4px; }
+        .user-details p { color: #888; font-size: 14px; }
+        .user-meta { text-align: right; }
+        .user-meta .msg-count { background: #00d4aa; color: #000; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .user-meta .last-msg { color: #666; font-size: 12px; margin-top: 4px; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+        .pagination button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .pagination button:hover { background: #444; }
+        .pagination button.active { background: #00d4aa; color: #000; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #666; }
+        .back-btn { display: inline-block; padding: 10px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 8px; margin-bottom: 20px; }
+        .back-btn:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Message Dashboard</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by user ID, username, or name...">
+            <button onclick="searchUsers()">Search</button>
+        </div>
+        <div id="userList" class="user-list"></div>
+        <div id="pagination" class="pagination"></div>
+    </div>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        
+        async function loadUsers(page = 1, search = '') {
+            currentPage = page;
+            const params = new URLSearchParams({ page, search });
+            const resp = await fetch('/admin/api/messages?' + params);
+            const data = await resp.json();
+            
+            totalPages = data.total_pages;
+            renderUsers(data.users);
+            renderPagination();
+        }
+        
+        function renderUsers(users) {
+            const container = document.getElementById('userList');
+            if (users.length === 0) {
+                container.innerHTML = '<div class="empty-state">No users found</div>';
+                return;
+            }
+            container.innerHTML = users.map(u => `
+                <div class="user-card" onclick="viewChat(${u.user_id})">
+                    <div class="user-info">
+                        <div class="user-avatar">${(u.first_name || 'U')[0].toUpperCase()}</div>
+                        <div class="user-details">
+                            <h3>${u.first_name || 'Unknown'} ${u.username ? '@' + u.username : ''}</h3>
+                            <p>ID: ${u.user_id}</p>
+                        </div>
+                    </div>
+                    <div class="user-meta">
+                        <span class="msg-count">${u.msg_count || 0} messages</span>
+                        <p class="last-msg">${u.last_msg ? formatDate(u.last_msg) : 'No messages'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="loadUsers(${currentPage - 1}, getSearch())">Prev</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="loadUsers(${i}, getSearch())">${i}</button>`;
+                } else if (Math.abs(i - currentPage) === 3) {
+                    html += '<button disabled>...</button>';
+                }
+            }
+            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="loadUsers(${currentPage + 1}, getSearch())">Next</button>`;
+            container.innerHTML = html;
+        }
+        
+        function getSearch() { return document.getElementById('searchInput').value; }
+        function searchUsers() { loadUsers(1, getSearch()); }
+        function viewChat(userId) { window.location.href = '/admin/chat/' + userId; }
+        function formatDate(d) { return new Date(d).toLocaleString(); }
+        
+        document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') searchUsers(); });
+        loadUsers();
+    </script>
+</body>
+</html>

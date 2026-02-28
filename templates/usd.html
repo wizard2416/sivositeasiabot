@@ -1,0 +1,184 @@
+{% extends "base_simple.html" %}
+
+{% block title %}USD Management{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+        <span class="px-2 py-1 rounded bg-emerald-100 text-emerald-600 text-sm">💵</span>
+        <span data-ar="إدارة USD" data-en="USD Management">إدارة USD</span>
+    </h1>
+    <a href="/admin/withdrawals" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 inline-flex items-center gap-2">
+        <i class="ri-wallet-line"></i>
+        <span data-ar="طلبات السحب" data-en="Withdrawals">طلبات السحب</span>
+        {% if pending_count > 0 %}
+        <span class="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs">{{ pending_count }}</span>
+        {% endif %}
+    </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-slate-800">{{ users|length }}</div>
+        <div class="text-xs text-slate-500" data-ar="مستخدمي USD" data-en="USD Users">مستخدمي USD</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-amber-600">{{ pending_count }}</div>
+        <div class="text-xs text-slate-500" data-ar="طلبات قيد الانتظار" data-en="Pending Requests">طلبات قيد الانتظار</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-emerald-600">${{ "%.2f"|format(total_paid) }}</div>
+        <div class="text-xs text-slate-500" data-ar="إجمالي المدفوع" data-en="Total Paid">إجمالي المدفوع</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-violet-600">{{ settings.get('usd_fee_percent', '0') }}%</div>
+        <div class="text-xs text-slate-500" data-ar="رسوم السحب" data-en="Withdrawal Fee">رسوم السحب</div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+    <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+        <i class="ri-settings-3-line text-slate-400"></i>
+        <span data-ar="إعدادات USD" data-en="USD Settings">إعدادات USD</span>
+    </h3>
+    <form method="POST" action="/admin/usd/settings" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="text-xs text-slate-500" data-ar="المبلغ (IQD)" data-en="Amount (IQD)">المبلغ (IQD)</label>
+            <input type="number" name="rate_iqd" value="{{ settings.get('usd_rate_iqd', '100000') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-32">
+        </div>
+        <div class="text-slate-400">=</div>
+        <div>
+            <label class="text-xs text-slate-500" data-ar="المبلغ (USD)" data-en="Amount (USD)">المبلغ (USD)</label>
+            <input type="number" step="0.01" name="rate_usd" value="{{ settings.get('usd_rate_usd', '55.50') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-24">
+        </div>
+        <div>
+            <label class="text-xs text-slate-500" data-ar="الحد الأدنى ($)" data-en="Minimum ($)">الحد الأدنى ($)</label>
+            <input type="number" name="minimum" value="{{ settings.get('usd_minimum', '50') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-20">
+        </div>
+        <div>
+            <label class="text-xs text-slate-500" data-ar="رسوم السحب (%)" data-en="Fee (%)">رسوم السحب (%)</label>
+            <input type="number" step="0.1" name="fee_percent" value="{{ settings.get('usd_fee_percent', '0') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-20">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700">
+            <i class="ri-save-line"></i> <span data-ar="حفظ" data-en="Save">حفظ</span>
+        </button>
+    </form>
+</div>
+
+<div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="p-3 border-b border-slate-700 flex items-center justify-between">
+        <h3 class="text-white font-medium" data-ar="مستخدمي USD" data-en="USD Users">مستخدمي USD</h3>
+        <div class="relative">
+            <i class="ri-search-line absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" class="pl-4 pr-10 py-2 rounded-lg bg-slate-700 border-0 text-white placeholder-slate-400 text-sm focus:ring-2 focus:ring-violet-500 outline-none w-48" placeholder="البحث...">
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="usersTable">
+            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-right font-medium">ID</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الاسم" data-en="Name">الاسم</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الرصيد" data-en="Balance">الرصيد</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="السحوبات" data-en="Withdrawals">السحوبات</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="إجمالي المسحوب" data-en="Total Withdrawn">إجمالي المسحوب</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="الحالة" data-en="Status">الحالة</th>
+                    <th class="px-4 py-3 text-center font-medium"><i class="ri-more-line"></i></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {% for u in users %}
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="px-4 py-3 text-slate-300 font-mono text-xs">{{ u.user_id }}</td>
+                    <td class="px-4 py-3 text-slate-300">
+                        <div>{{ u.first_name or '-' }}</div>
+                        {% if u.username %}<div class="text-slate-500 text-xs">@{{ u.username }}</div>{% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-emerald-400 font-bold">{{ "{:,}".format(u.balance_iqd) }} IQD</div>
+                    </td>
+                    <td class="px-4 py-3 text-center text-slate-300">{{ u.withdrawal_count }}</td>
+                    <td class="px-4 py-3 text-slate-300">${{ "%.2f"|format(u.total_withdrawn) }}</td>
+                    <td class="px-4 py-3 text-center">
+                        {% if u.is_verified %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">Active</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-400">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-2 py-3 text-center">
+                        <a href="/admin/user/{{ u.user_id }}" class="p-1 text-violet-400 hover:text-violet-300">
+                            <i class="ri-eye-line"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                        <i class="ri-user-line text-4xl mb-2 block"></i>
+                        <span data-ar="لا يوجد مستخدمي USD" data-en="No USD users">لا يوجد مستخدمي USD</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="p-3 border-t border-slate-700 flex items-center justify-between text-sm text-slate-400">
+        <span>{{ users|length }} <span data-ar="مستخدم" data-en="users">مستخدم</span></span>
+    </div>
+</div>
+
+<div class="sm:hidden mt-4 space-y-3">
+    {% for u in users %}
+    <div class="bg-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-300 font-medium">{{ u.first_name or u.user_id }}</span>
+            {% if u.is_verified %}
+            <span class="px-2 py-1 rounded text-xs bg-emerald-500/20 text-emerald-400">Active</span>
+            {% else %}
+            <span class="px-2 py-1 rounded text-xs bg-amber-500/20 text-amber-400">Pending</span>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+            <div>
+                <div class="text-slate-500 text-xs" data-ar="الرصيد" data-en="Balance">الرصيد</div>
+                <div class="text-emerald-400 font-bold">{{ "{:,}".format(u.balance_iqd) }} IQD</div>
+            </div>
+            <div>
+                <div class="text-slate-500 text-xs" data-ar="المسحوب" data-en="Withdrawn">المسحوب</div>
+                <div class="text-slate-300">${{ "%.2f"|format(u.total_withdrawn) }}</div>
+            </div>
+        </div>
+        <a href="/admin/user/{{ u.user_id }}" class="block text-center py-2 rounded-lg bg-violet-600 text-white text-sm">
+            <span data-ar="عرض التفاصيل" data-en="View Details">عرض التفاصيل</span>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

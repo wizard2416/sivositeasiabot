@@ -1,0 +1,233 @@
+{% extends "base_simple.html" %}
+
+{% block title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                <i class="ri-group-line text-violet-600"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-slate-800">{{ stats.total_users }}</div>
+                <div class="text-xs text-slate-500" data-ar="المستخدمين" data-en="Users">المستخدمين</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <i class="ri-checkbox-circle-line text-emerald-600"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-emerald-600">{{ stats.verified_cards }}</div>
+                <div class="text-xs text-slate-500" data-ar="ناجحة" data-en="Verified">ناجحة</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <i class="ri-time-line text-amber-600"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-amber-600">{{ stats.pending_cards }}</div>
+                <div class="text-xs text-slate-500" data-ar="انتظار" data-en="Pending">انتظار</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center">
+                <i class="ri-smartphone-line text-cyan-600"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-cyan-600">{{ stats.online_phones }}</div>
+                <div class="text-xs text-slate-500" data-ar="متصل" data-en="Online">متصل</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stats.get('pending_payments', 0) > 0 or stats.get('pending_users', 0) > 0 %}
+<div class="bg-gradient-to-l from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 mb-6">
+    <div class="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+        <i class="ri-notification-3-line"></i>
+        <span data-ar="يحتاج انتباهك" data-en="Needs Attention">يحتاج انتباهك</span>
+    </div>
+    {% if stats.get('pending_payments', 0) > 0 %}
+    <a href="/admin/payments" class="flex items-center justify-between py-2 text-amber-700 hover:text-amber-900">
+        <span>{{ stats.pending_payments }} <span data-ar="طلب دفع" data-en="payment requests">طلب دفع</span></span>
+        <i class="ri-arrow-left-s-line rtl:rotate-180"></i>
+    </a>
+    {% endif %}
+    {% if stats.get('pending_users', 0) > 0 %}
+    <a href="/admin/users/pending" class="flex items-center justify-between py-2 text-amber-700 hover:text-amber-900">
+        <span>{{ stats.pending_users }} <span data-ar="مستخدم جديد" data-en="new users">مستخدم جديد</span></span>
+        <i class="ri-arrow-left-s-line rtl:rotate-180"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <a href="/admin/users" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-violet-100 group-hover:bg-violet-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-group-line text-xl text-violet-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="المستخدمين" data-en="Users">المستخدمين</div>
+    </a>
+    <a href="/admin/cards" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-100 group-hover:bg-emerald-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-bank-card-line text-xl text-emerald-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="البطاقات" data-en="Cards">البطاقات</div>
+    </a>
+    <a href="/admin/payments" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-fuchsia-100 group-hover:bg-fuchsia-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-wallet-3-line text-xl text-fuchsia-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="الدفعات" data-en="Payments">الدفعات</div>
+    </a>
+    <a href="/admin/phones" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-cyan-100 group-hover:bg-cyan-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-smartphone-line text-xl text-cyan-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="الأجهزة" data-en="Devices">الأجهزة</div>
+    </a>
+    <a href="/admin/xena" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-pink-100 group-hover:bg-pink-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-gamepad-line text-xl text-pink-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700">Xena Live</div>
+    </a>
+    <a href="/admin/chats" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-teal-100 group-hover:bg-teal-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-chat-3-line text-xl text-teal-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="المحادثات" data-en="Chats">المحادثات</div>
+    </a>
+    <a href="/admin/activity" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-orange-100 group-hover:bg-orange-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-history-line text-xl text-orange-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700" data-ar="السجل" data-en="Log">السجل</div>
+    </a>
+    <a href="/admin/api-settings" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center group">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-indigo-100 group-hover:bg-indigo-600 flex items-center justify-center mb-2 transition-colors">
+            <i class="ri-plug-line text-xl text-indigo-600 group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="text-sm font-medium text-slate-700">API</div>
+    </a>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-settings-3-line text-violet-500"></i>
+            <span data-ar="التحكم بالنظام" data-en="System Control">التحكم بالنظام</span>
+        </h3>
+        
+        <div class="flex items-center justify-between py-3 border-b border-slate-100">
+            <div>
+                <div class="font-medium text-slate-700" data-ar="حالة البوت" data-en="Bot Status">حالة البوت</div>
+                <div class="text-sm {% if bot_paused %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                    {% if bot_paused %}<span data-ar="متوقف" data-en="Stopped">متوقف</span>{% else %}<span data-ar="يعمل" data-en="Running">يعمل</span>{% endif %}
+                </div>
+            </div>
+            <form method="POST" action="/admin/settings/toggle-bot">
+                <button class="px-4 py-2 rounded-xl text-sm font-medium transition {% if bot_paused %}bg-emerald-600 text-white hover:bg-emerald-700{% else %}bg-rose-100 text-rose-700 hover:bg-rose-200{% endif %}">
+                    {% if bot_paused %}<span data-ar="تشغيل" data-en="Start">تشغيل</span>{% else %}<span data-ar="إيقاف" data-en="Stop">إيقاف</span>{% endif %}
+                </button>
+            </form>
+        </div>
+        
+        <div class="flex items-center justify-between py-3">
+            <div>
+                <div class="font-medium text-slate-700" data-ar="معالجة البطاقات" data-en="Processing">معالجة البطاقات</div>
+                <div class="text-sm {% if processing_paused %}text-amber-600{% else %}text-emerald-600{% endif %}">
+                    {% if processing_paused %}<span data-ar="متوقف مؤقتاً" data-en="Paused">متوقف مؤقتاً</span>{% else %}<span data-ar="نشط" data-en="Active">نشط</span>{% endif %}
+                </div>
+            </div>
+            <form method="POST" action="/admin/settings/toggle-processing">
+                <button class="px-4 py-2 rounded-xl text-sm font-medium transition {% if processing_paused %}bg-emerald-600 text-white hover:bg-emerald-700{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                    {% if processing_paused %}<span data-ar="استئناف" data-en="Resume">استئناف</span>{% else %}<span data-ar="إيقاف" data-en="Pause">إيقاف</span>{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ri-broadcast-line text-violet-500"></i>
+            <span data-ar="إرسال رسالة جماعية" data-en="Broadcast">إرسال رسالة جماعية</span>
+        </h3>
+        <form method="POST" action="/admin/settings/broadcast" enctype="multipart/form-data">
+            <textarea name="message" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none mb-3 text-sm transition" placeholder="اكتب رسالتك..."></textarea>
+            <div class="flex gap-2">
+                <input type="file" name="media" accept="image/*,video/*" class="flex-1 text-xs file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-600 hover:file:bg-violet-100">
+                <button class="px-5 py-2 bg-gradient-to-l from-violet-600 to-purple-600 text-white rounded-xl text-sm font-medium hover:shadow-lg transition" data-ar="إرسال" data-en="Send">إرسال</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+            <i class="ri-file-list-3-line text-violet-500"></i>
+            <span data-ar="آخر العمليات" data-en="Recent Orders">آخر العمليات</span>
+        </h3>
+        <a href="/admin/cards" class="text-sm text-violet-600 hover:text-violet-800" data-ar="عرض الكل" data-en="View All">عرض الكل</a>
+    </div>
+    
+    <div class="space-y-2">
+        {% for order in recent_orders[:6] %}
+        <div class="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-slate-50 transition">
+            <div class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rounded-full {% if order.status == 'verified' or order.status == 'completed' %}bg-emerald-500{% elif order.status == 'pending' or order.status == 'processing' %}bg-amber-500{% else %}bg-rose-500{% endif %}"></span>
+                <div>
+                    <div class="font-medium text-sm text-slate-800">{{ order.amount }}</div>
+                    <div class="text-xs text-slate-500">{{ order.username or order.user_id }} - {{ order.product }}</div>
+                </div>
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full font-medium {% if order.status == 'verified' or order.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif order.status == 'pending' or order.status == 'processing' %}bg-amber-100 text-amber-700{% else %}bg-rose-100 text-rose-700{% endif %}">{{ order.status }}</span>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-slate-400">
+            <i class="ri-inbox-line text-3xl mb-2"></i>
+            <p data-ar="لا توجد عمليات" data-en="No orders">لا توجد عمليات</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm p-5">
+    <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+        <i class="ri-smartphone-line text-violet-500"></i>
+        <span data-ar="الأجهزة" data-en="Devices">الأجهزة</span>
+    </h3>
+    <div class="space-y-1">
+        {% for phone in phones %}
+        <div class="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-slate-50 transition">
+            <div class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rounded-full {% if phone.status == 'online' %}bg-emerald-500{% else %}bg-slate-300{% endif %}"></span>
+                <span class="font-medium text-sm text-slate-800">{{ phone.name or phone.phone_id[:8] }}</span>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+                <span class="{% if phone.battery_level > 50 %}text-emerald-600{% elif phone.battery_level > 20 %}text-amber-600{% else %}text-rose-600{% endif %}">
+                    <i class="ri-battery-2-line"></i> {{ phone.battery_level }}%
+                </span>
+                <span class="text-slate-500 text-xs">{{ phone.jobs_completed }}/{{ phone.jobs_failed }}</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-slate-400">
+            <i class="ri-smartphone-line text-3xl mb-2"></i>
+            <p data-ar="لا توجد أجهزة" data-en="No devices">لا توجد أجهزة</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

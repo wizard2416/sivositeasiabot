@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - Asiacell Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f5f5f5; color: #333; min-height: 100vh; }
+        .navbar { background: #fff !important; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar-brand { color: #333 !important; }
+        .card { background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-header { background: #f8f9fa; border-bottom: 1px solid #ddd; color: #333; }
+        .table { color: #333; }
+        .table th { background: #f8f9fa; border-color: #ddd; }
+        .table td { border-color: #ddd; }
+        .table-hover tbody tr:hover { background: #f1f1f1; }
+        .status-pending { color: #856404; }
+        .status-verified { color: #155724; }
+        .status-failed { color: #721c24; }
+        .phone-online { color: #28a745; }
+        .phone-offline { color: #6c757d; }
+        .stat-card { background: #fff; }
+        .live-indicator { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .battery-low { color: #dc3545; }
+        .battery-medium { color: #f0ad4e; }
+        .battery-high { color: #28a745; }
+        .text-muted { color: #6c757d !important; }
+        .phone-item { background: #f8f9fa !important; }
+        code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; color: #333; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="bi bi-headset me-2"></i>Employee Dashboard
+                <span class="badge bg-success live-indicator ms-2">LIVE</span>
+            </span>
+            <div>
+                <span class="text-muted me-3">
+                    <i class="bi bi-clock me-1"></i>
+                    <span id="current-time"></span>
+                </span>
+                <a href="{{ url_for('employee_logout') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-hourglass-split text-warning" style="font-size: 2rem;"></i>
+                        <h3 class="mt-2" id="stat-pending">{{ stats.pending }}</h3>
+                        <p class="text-muted mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                        <h3 class="mt-2" id="stat-verified">{{ stats.verified }}</h3>
+                        <p class="text-muted mb-0">Verified</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                        <h3 class="mt-2" id="stat-failed">{{ stats.failed }}</h3>
+                        <p class="text-muted mb-0">Failed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-hdd text-info" style="font-size: 2rem;"></i>
+                        <h3 class="mt-2" id="stat-phones">{{ stats.online_phones }}</h3>
+                        <p class="text-muted mb-0">Systems Online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-credit-card me-2"></i>Live Card Feed</span>
+                        <span class="badge bg-primary" id="last-update">Auto-refresh: 5s</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>User</th>
+                                        <th>PIN</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>System</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cards-table">
+                                    {% for card in cards %}
+                                    <tr>
+                                        <td>#{{ card.id }}</td>
+                                        <td>{{ card.user_id }}</td>
+                                        <td><code>{{ card.pin }}</code></td>
+                                        <td>{{ "{:,}".format(card.amount or 0) }} IQD</td>
+                                        <td>
+                                            {% if card.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif card.status == 'verified' %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ card.phone_id or '-' }}</td>
+                                        <td>{{ card.created_at[:19] if card.created_at else '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-hdd me-2"></i>System Status
+                    </div>
+                    <div class="card-body" id="phones-list">
+                        {% for phone in phones %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded phone-item">
+                            <div>
+                                <strong>{{ phone.name or 'System' }}</strong>
+                                <br>
+                                <small class="text-muted">ID: {{ phone.phone_id[:8] if phone.phone_id else 'N/A' }}...</small>
+                            </div>
+                            <div class="text-end">
+                                {% if phone.status == 'online' %}
+                                    <span class="badge bg-success">Online</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Offline</span>
+                                {% endif %}
+                                <br>
+                                {% set battery = phone.battery_level|default(0) %}
+                                <small class="{% if battery <= 20 %}battery-low{% elif battery <= 50 %}battery-medium{% else %}battery-high{% endif %}">
+                                    <i class="bi bi-battery-{% if battery > 75 %}full{% elif battery > 50 %}half{% elif battery > 25 %}{% else %}{% endif %}"></i>
+                                    {{ battery }}%
+                                </small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No systems connected</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle me-2"></i>Info
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-eye me-2"></i>Auto-refresh: 5s
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function refreshData() {
+            fetch('/employee/api/live-feed')
+                .then(response => response.json())
+                .then(data => {
+                    let pending = 0, verified = 0, failed = 0;
+                    
+                    let cardsHtml = '';
+                    data.cards.forEach(card => {
+                        if (card.status === 'pending') pending++;
+                        else if (card.status === 'verified') verified++;
+                        else failed++;
+                        
+                        let statusBadge = '';
+                        if (card.status === 'pending') statusBadge = '<span class="badge bg-warning">Pending</span>';
+                        else if (card.status === 'verified') statusBadge = '<span class="badge bg-success">Verified</span>';
+                        else statusBadge = '<span class="badge bg-danger">Failed</span>';
+                        
+                        cardsHtml += `<tr>
+                            <td>#${card.id}</td>
+                            <td>${card.user_id}</td>
+                            <td><code>${card.pin}</code></td>
+                            <td>${(card.amount || 0).toLocaleString()} IQD</td>
+                            <td>${statusBadge}</td>
+                            <td>${card.phone_id || '-'}</td>
+                            <td>${card.created_at ? card.created_at.substring(0, 19) : '-'}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('cards-table').innerHTML = cardsHtml;
+                    
+                    document.getElementById('stat-pending').textContent = pending;
+                    document.getElementById('stat-verified').textContent = verified;
+                    document.getElementById('stat-failed').textContent = failed;
+                    
+                    let onlinePhones = 0;
+                    let phonesHtml = '';
+                    data.phones.forEach(phone => {
+                        if (phone.status === 'online') onlinePhones++;
+                        const battery = phone.battery_level || 0;
+                        const batteryClass = battery <= 20 ? 'battery-low' : (battery <= 50 ? 'battery-medium' : 'battery-high');
+                        const statusBadge = phone.status === 'online' 
+                            ? '<span class="badge bg-success">Online</span>' 
+                            : '<span class="badge bg-secondary">Offline</span>';
+                        
+                        phonesHtml += `<div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded phone-item">
+                            <div>
+                                <strong>${phone.name || 'System'}</strong>
+                                <br>
+                                <small class="text-muted">ID: ${phone.phone_id ? phone.phone_id.substring(0, 8) : 'N/A'}...</small>
+                            </div>
+                            <div class="text-end">
+                                ${statusBadge}
+                                <br>
+                                <small class="${batteryClass}">
+                                    <i class="bi bi-battery-half"></i>
+                                    ${battery}%
+                                </small>
+                            </div>
+                        </div>`;
+                    });
+                    document.getElementById('phones-list').innerHTML = phonesHtml || '<p class="text-muted text-center">No systems registered</p>';
+                    document.getElementById('stat-phones').textContent = onlinePhones;
+                    
+                    document.getElementById('last-update').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+                })
+                .catch(err => {
+                    console.error('Error fetching data:', err);
+                    document.getElementById('last-update').textContent = 'Error updating';
+                });
+        }
+
+        setInterval(refreshData, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - Asiacell Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding-top: 1rem;
+            z-index: 1000;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.8rem 1.5rem;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+        .brand {
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+        .stat-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .table-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+        }
+        .badge-online { background-color: #28a745; }
+        .badge-offline { background-color: #6c757d; }
+        .badge-verified { background-color: #28a745; }
+        .badge-completed { background-color: #28a745; }
+        .badge-pending { background-color: #ffc107; color: #000; }
+        .badge-failed { background-color: #dc3545; }
+        .badge-processing { background-color: #17a2b8; }
+        .bg-purple { background-color: #6f42c1; color: #fff; }
+        .bg-primary { background-color: #0d6efd; color: #fff; }
+        .bg-danger { background-color: #dc3545; color: #fff; }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session.get('admin_logged_in') %}
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="bi bi-sim"></i> Asiacell Bot
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="/admin">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}" href="/admin/users">
+                    <i class="bi bi-people"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_pending_users' %}active{% endif %}" href="/admin/users/pending">
+                    <i class="bi bi-clock-history"></i> Pending Approvals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_pre_approvals' %}active{% endif %}" href="/admin/pre-approvals">
+                    <i class="bi bi-person-plus"></i> Pre-Approvals
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_cards' %}active{% endif %}" href="/admin/cards">
+                    <i class="bi bi-credit-card"></i> Cards
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_payments' %}active{% endif %}" href="/admin/payments">
+                    <i class="bi bi-wallet2"></i> Payments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_xena' %}active{% endif %}" href="/admin/xena">
+                    <i class="bi bi-controller"></i> Xena Live
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_phones' %}active{% endif %}" href="/admin/phones">
+                    <i class="bi bi-hdd"></i> Systems
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_chats' %}active{% endif %}" href="/admin/chats">
+                    <i class="bi bi-chat-dots"></i> Chats
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_settings' %}active{% endif %}" href="/admin/settings">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_activity' %}active{% endif %}" href="/admin/activity">
+                    <i class="bi bi-journal-text"></i> Activity Log
+                </a>
+            </li>
+            <li class="nav-item mt-4">
+                <a class="nav-link text-danger" href="/admin/logout">
+                    <i class="bi bi-box-arrow-left"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+    
+    <div class="{% if session.get('admin_logged_in') %}main-content{% else %}container{% endif %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% extends "base_simple.html" %}
+
+{% block title %}سجل النشاط{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800" data-ar="سجل النشاط" data-en="Activity Log">سجل النشاط</h1>
+    <select class="px-3 py-2 rounded-lg border text-sm bg-white" onchange="filterByAction(this.value)">
+        <option value="" data-ar="كل الإجراءات" data-en="All Actions">كل الإجراءات</option>
+        <option value="card_confirm" {% if action_filter == 'card_confirm' %}selected{% endif %}>Card Confirm</option>
+        <option value="card_reject" {% if action_filter == 'card_reject' %}selected{% endif %}>Card Reject</option>
+        <option value="xena_confirm" {% if action_filter == 'xena_confirm' %}selected{% endif %}>Xena Confirm</option>
+        <option value="broadcast" {% if action_filter == 'broadcast' %}selected{% endif %}>Broadcast</option>
+        <option value="balance_add" {% if action_filter == 'balance_add' %}selected{% endif %}>Balance Add</option>
+        <option value="user_approve" {% if action_filter == 'user_approve' %}selected{% endif %}>User Approve</option>
+    </select>
+</div>
+
+<div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="التاريخ" data-en="Date">التاريخ</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الوقت" data-en="Time">الوقت</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الإجراء" data-en="Action">الإجراء</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الهدف" data-en="Target">الهدف</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="التفاصيل" data-en="Details">التفاصيل</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {% for activity in activities %}
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="px-4 py-3 text-slate-400 text-xs">
+                        {% if activity.created_at %}
+                        {{ activity.created_at[:10] if activity.created_at|string|length > 10 else activity.created_at }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">
+                        {% if activity.created_at and activity.created_at|string|length > 11 %}
+                        {{ (activity.created_at|string)[11:19] }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if 'card' in activity.action_type %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">{{ activity.action_type }}</span>
+                        {% elif 'xena' in activity.action_type %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-pink-500/20 text-pink-400">{{ activity.action_type }}</span>
+                        {% elif 'broadcast' in activity.action_type %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400">{{ activity.action_type }}</span>
+                        {% elif 'balance' in activity.action_type %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-violet-500/20 text-violet-400">{{ activity.action_type }}</span>
+                        {% elif 'user' in activity.action_type %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-400">{{ activity.action_type }}</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-500/20 text-slate-400">{{ activity.action_type }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if activity.target_type == 'card' %}
+                        <a href="/admin/cards" class="text-violet-400 hover:text-violet-300">Card #{{ activity.target_id }}</a>
+                        {% elif activity.target_type == 'xena' %}
+                        <a href="/admin/xena" class="text-violet-400 hover:text-violet-300">Xena #{{ activity.target_id }}</a>
+                        {% elif activity.target_type == 'user' %}
+                        <a href="/admin/user/{{ activity.target_id }}" class="text-violet-400 hover:text-violet-300">User {{ activity.target_id }}</a>
+                        {% else %}
+                        <span class="text-slate-400">{{ activity.target_type or '-' }} {{ activity.target_id or '' }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-slate-400 text-xs max-w-xs truncate">{{ activity.details or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-4 py-12 text-center text-slate-500">
+                        <i class="ri-history-line text-4xl mb-2 block"></i>
+                        <span data-ar="لا يوجد نشاط" data-en="No activity">لا يوجد نشاط</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="p-3 border-t border-slate-700 flex items-center justify-between text-sm text-slate-400">
+        <span>{{ activities|length }} <span data-ar="سجل" data-en="records">سجل</span></span>
+    </div>
+</div>
+
+<div class="sm:hidden mt-4 space-y-3">
+    {% for activity in activities %}
+    <div class="bg-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+            {% if 'card' in activity.action_type %}
+            <span class="px-2 py-1 rounded text-xs bg-emerald-500/20 text-emerald-400">{{ activity.action_type }}</span>
+            {% elif 'xena' in activity.action_type %}
+            <span class="px-2 py-1 rounded text-xs bg-pink-500/20 text-pink-400">{{ activity.action_type }}</span>
+            {% else %}
+            <span class="px-2 py-1 rounded text-xs bg-slate-500/20 text-slate-400">{{ activity.action_type }}</span>
+            {% endif %}
+            <span class="text-xs text-slate-500">{{ activity.created_at[:16] if activity.created_at else '-' }}</span>
+        </div>
+        <p class="text-sm text-slate-300">{{ activity.details or '-' }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterByAction(action) {
+    if (action) {
+        window.location.href = '/admin/activity?action=' + action;
+    } else {
+        window.location.href = '/admin/activity';
+    }
+}
+</script>
+{% endblock %}

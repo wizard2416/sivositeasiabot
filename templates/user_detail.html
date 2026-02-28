@@ -1,0 +1,315 @@
+{% extends "base_simple.html" %}
+
+{% block title %}المستخدم {{ user.user_id }}{% endblock %}
+{% block page_title %}<span data-ar="تفاصيل المستخدم" data-en="User Details">تفاصيل المستخدم</span>{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+            <i class="ri-user-line text-xl text-primary-600"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ user.username or user.user_id }}</h2>
+            <p class="text-sm text-slate-500">ID: {{ user.user_id }}</p>
+        </div>
+    </div>
+    <a href="/admin/users" class="btn btn-secondary">
+        <i class="ri-arrow-right-line"></i>
+        <span data-ar="العودة للمستخدمين" data-en="Back to Users">العودة للمستخدمين</span>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1 space-y-6">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+            <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <i class="ri-information-line text-slate-400"></i>
+                <span data-ar="معلومات المستخدم" data-en="User Info">معلومات المستخدم</span>
+            </h3>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="معرف المستخدم" data-en="User ID">معرف المستخدم</span>
+                    <span class="font-mono text-slate-800 dark:text-white">{{ user.user_id }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</span>
+                    <span class="text-slate-800 dark:text-white">{{ user.username or '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="العملات" data-en="Coins">العملات</span>
+                    <span class="font-bold text-primary-600">🪙 {{ "{:,.0f}".format(user.balance_coins or 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="الدينار" data-en="IQD">الدينار</span>
+                    <span class="font-bold text-success-600">{{ "{:,.0f}".format(user.balance_iqd) }} IQD</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="اللغة" data-en="Language">اللغة</span>
+                    <span class="text-slate-800 dark:text-white">{{ 'العربية' if user.language == 'ar' else 'English' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="الحالة" data-en="Status">الحالة</span>
+                    {% if user.is_blocked %}
+                    <span class="badge bg-danger-100 text-danger-700"><i class="ri-lock-line"></i> <span data-ar="محظور" data-en="Blocked">محظور</span></span>
+                    {% else %}
+                    <span class="badge bg-success-100 text-success-700"><i class="ri-checkbox-circle-line"></i> <span data-ar="نشط" data-en="Active">نشط</span></span>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm">VIP</span>
+                    {% if user.is_vip %}
+                    <span class="badge bg-warning-100 text-warning-700"><i class="ri-vip-crown-fill"></i> VIP</span>
+                    {% else %}
+                    <span class="text-slate-400" data-ar="لا" data-en="No">لا</span>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500 text-sm" data-ar="الخدمة" data-en="Service">الخدمة</span>
+                    <select id="service-type" onchange="updateServiceType()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none">
+                        <option value="xena" {% if user.service_type == 'xena' %}selected{% endif %}>Xena Live</option>
+                        <option value="imo" {% if user.service_type == 'imo' %}selected{% endif %}>IMO</option>
+                        <option value="both" {% if user.service_type == 'both' %}selected{% endif %}>Both</option>
+                        <option value="usd" {% if user.service_type == 'usd' %}selected{% endif %}>USD</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-slate-500 text-sm" data-ar="تاريخ الانضمام" data-en="Joined">تاريخ الانضمام</span>
+                    <span class="text-slate-800 dark:text-white text-sm">{{ user.created_at[:10] if user.created_at else '-' }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+            <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <i class="ri-settings-3-line text-slate-400"></i>
+                <span data-ar="الإجراءات" data-en="Actions">الإجراءات</span>
+            </h3>
+            
+            <div class="space-y-2">
+                <a href="/admin/user/{{ user.user_id }}/balance" class="flex items-center gap-3 w-full p-3 rounded-xl bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400 hover:bg-success-100 dark:hover:bg-success-900/30 transition-colors">
+                    <i class="ri-money-dollar-circle-line text-lg"></i>
+                    <span data-ar="تعديل الرصيد" data-en="Adjust Balance">تعديل الرصيد</span>
+                </a>
+                
+                {% if user.is_blocked %}
+                <a href="/admin/user/{{ user.user_id }}/unblock" class="flex items-center gap-3 w-full p-3 rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400 hover:bg-warning-100 dark:hover:bg-warning-900/30 transition-colors">
+                    <i class="ri-lock-unlock-line text-lg"></i>
+                    <span data-ar="إلغاء الحظر" data-en="Unblock User">إلغاء الحظر</span>
+                </a>
+                {% else %}
+                <a href="/admin/user/{{ user.user_id }}/block" class="flex items-center gap-3 w-full p-3 rounded-xl bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400 hover:bg-danger-100 dark:hover:bg-danger-900/30 transition-colors">
+                    <i class="ri-lock-line text-lg"></i>
+                    <span data-ar="حظر المستخدم" data-en="Block User">حظر المستخدم</span>
+                </a>
+                {% endif %}
+                
+                {% if user.is_vip %}
+                <a href="/admin/user/{{ user.user_id }}/toggle-vip" class="flex items-center gap-3 w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                    <i class="ri-vip-crown-line text-lg"></i>
+                    <span data-ar="إزالة VIP" data-en="Remove VIP">إزالة VIP</span>
+                </a>
+                {% else %}
+                <a href="/admin/user/{{ user.user_id }}/toggle-vip" class="flex items-center gap-3 w-full p-3 rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400 hover:bg-warning-100 dark:hover:bg-warning-900/30 transition-colors">
+                    <i class="ri-vip-crown-fill text-lg"></i>
+                    <span data-ar="ترقية لـ VIP" data-en="Make VIP">ترقية لـ VIP</span>
+                </a>
+                {% endif %}
+                
+                <a href="/admin/chats/{{ user.user_id }}" class="flex items-center gap-3 w-full p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+                    <i class="ri-chat-3-line text-lg"></i>
+                    <span data-ar="عرض المحادثة" data-en="View Chat">عرض المحادثة</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="ri-bank-card-line text-slate-400"></i>
+                    <span data-ar="سجل البطاقات" data-en="Card History">سجل البطاقات</span>
+                </h3>
+            </div>
+            
+            <div class="desktop-table show-on-desktop overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 dark:bg-slate-700 text-xs text-slate-500 dark:text-slate-400 uppercase">
+                        <tr>
+                            <th class="px-5 py-3 text-right">#</th>
+                            <th class="px-5 py-3 text-right" data-ar="رقم البطاقة" data-en="PIN">رقم البطاقة</th>
+                            <th class="px-5 py-3 text-right" data-ar="المبلغ" data-en="Amount">المبلغ</th>
+                            <th class="px-5 py-3 text-right" data-ar="الحالة" data-en="Status">الحالة</th>
+                            <th class="px-5 py-3 text-right" data-ar="التاريخ" data-en="Date">التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        {% for card in cards %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                            <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{{ card.id }}</td>
+                            <td class="px-5 py-4 text-sm font-mono text-slate-800 dark:text-white">{{ card.pin }}</td>
+                            <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{{ card.amount }} IQD</td>
+                            <td class="px-5 py-4">
+                                {% if card.status == 'verified' %}
+                                <span class="badge bg-success-100 text-success-700"><i class="ri-checkbox-circle-line"></i> <span data-ar="ناجحة" data-en="Verified">ناجحة</span></span>
+                                {% elif card.status == 'pending' %}
+                                <span class="badge bg-warning-100 text-warning-700"><i class="ri-time-line"></i> <span data-ar="قيد الانتظار" data-en="Pending">قيد الانتظار</span></span>
+                                {% elif card.status == 'processing' %}
+                                <span class="badge bg-primary-100 text-primary-700"><i class="ri-loader-4-line"></i> <span data-ar="قيد المعالجة" data-en="Processing">قيد المعالجة</span></span>
+                                {% elif card.status == 'failed' %}
+                                <span class="badge bg-danger-100 text-danger-700"><i class="ri-close-circle-line"></i> <span data-ar="فاشلة" data-en="Failed">فاشلة</span></span>
+                                {% else %}
+                                <span class="badge bg-slate-100 text-slate-700">{{ card.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">{{ card.created_at[:16] if card.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                                <i class="ri-bank-card-line text-3xl mb-2"></i>
+                                <p data-ar="لا توجد بطاقات" data-en="No cards yet">لا توجد بطاقات</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mobile-card hide-on-desktop p-4 space-y-3">
+                {% for card in cards %}
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-mono text-slate-800 dark:text-white text-sm">{{ card.pin }}</span>
+                        {% if card.status == 'verified' %}
+                        <span class="badge bg-success-100 text-success-700">ناجحة</span>
+                        {% elif card.status == 'pending' %}
+                        <span class="badge bg-warning-100 text-warning-700">قيد الانتظار</span>
+                        {% elif card.status == 'failed' %}
+                        <span class="badge bg-danger-100 text-danger-700">فاشلة</span>
+                        {% else %}
+                        <span class="badge bg-slate-100 text-slate-700">{{ card.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-slate-500" data-ar="المبلغ" data-en="Amount">المبلغ</span>
+                        <span class="font-medium text-slate-800 dark:text-white">{{ card.amount }} IQD</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-500" data-ar="التاريخ" data-en="Date">التاريخ</span>
+                        <span class="text-slate-600 dark:text-slate-400">{{ card.created_at[:16] if card.created_at else '-' }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-8 text-center text-slate-400">
+                    <i class="ri-bank-card-line text-3xl mb-2"></i>
+                    <p data-ar="لا توجد بطاقات" data-en="No cards yet">لا توجد بطاقات</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden mt-6">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="ri-gamepad-line text-pink-500"></i>
+                    <span data-ar="سجل زینە لایڤ" data-en="Xena Live History">سجل زینە لایڤ</span>
+                </h3>
+            </div>
+            
+            <div class="desktop-table show-on-desktop overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 dark:bg-slate-700 text-xs text-slate-500 dark:text-slate-400 uppercase">
+                        <tr>
+                            <th class="px-5 py-3 text-right">#</th>
+                            <th class="px-5 py-3 text-right" data-ar="اللاعب" data-en="Player">اللاعب</th>
+                            <th class="px-5 py-3 text-right" data-ar="العملات" data-en="Coins">العملات</th>
+                            <th class="px-5 py-3 text-right" data-ar="السعر" data-en="Price">السعر</th>
+                            <th class="px-5 py-3 text-right" data-ar="الحالة" data-en="Status">الحالة</th>
+                            <th class="px-5 py-3 text-right" data-ar="التاريخ" data-en="Date">التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        {% for order in xena_orders %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                            <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{{ order.id }}</td>
+                            <td class="px-5 py-4 text-sm font-mono text-slate-800 dark:text-white">{{ order.player_id }}</td>
+                            <td class="px-5 py-4 text-sm text-pink-500 font-medium">{{ "{:,}".format(order.coins) }}</td>
+                            <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">{{ "{:,}".format(order.price_iqd) }} IQD</td>
+                            <td class="px-5 py-4">
+                                {% if order.status == 'completed' %}
+                                <span class="badge bg-success-100 text-success-700"><i class="ri-checkbox-circle-line"></i> <span data-ar="مكتمل" data-en="Completed">مكتمل</span></span>
+                                {% elif order.status == 'pending' %}
+                                <span class="badge bg-warning-100 text-warning-700"><i class="ri-time-line"></i> <span data-ar="قيد الانتظار" data-en="Pending">قيد الانتظار</span></span>
+                                {% elif order.status == 'failed' %}
+                                <span class="badge bg-danger-100 text-danger-700"><i class="ri-close-circle-line"></i> <span data-ar="فشل" data-en="Failed">فشل</span></span>
+                                {% elif order.status == 'rejected' %}
+                                <span class="badge bg-slate-100 text-slate-700"><i class="ri-arrow-go-back-line"></i> <span data-ar="مسترد" data-en="Refunded">مسترد</span></span>
+                                {% else %}
+                                <span class="badge bg-slate-100 text-slate-700">{{ order.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">{{ order.created_at[:16] if order.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-400">
+                                <i class="ri-gamepad-line text-3xl mb-2"></i>
+                                <p data-ar="لا توجد طلبات" data-en="No orders yet">لا توجد طلبات</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mobile-card hide-on-desktop p-4 space-y-3">
+                {% for order in xena_orders %}
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-mono text-slate-800 dark:text-white text-sm">{{ order.player_id }}</span>
+                        {% if order.status == 'completed' %}
+                        <span class="badge bg-success-100 text-success-700">مكتمل</span>
+                        {% elif order.status == 'pending' %}
+                        <span class="badge bg-warning-100 text-warning-700">قيد الانتظار</span>
+                        {% elif order.status == 'failed' %}
+                        <span class="badge bg-danger-100 text-danger-700">فشل</span>
+                        {% elif order.status == 'rejected' %}
+                        <span class="badge bg-slate-100 text-slate-700">مسترد</span>
+                        {% else %}
+                        <span class="badge bg-slate-100 text-slate-700">{{ order.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-slate-500" data-ar="العملات" data-en="Coins">العملات</span>
+                        <span class="font-medium text-pink-500">{{ "{:,}".format(order.coins) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-slate-500" data-ar="السعر" data-en="Price">السعر</span>
+                        <span class="font-medium text-slate-800 dark:text-white">{{ "{:,}".format(order.price_iqd) }} IQD</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-500" data-ar="التاريخ" data-en="Date">التاريخ</span>
+                        <span class="text-slate-600 dark:text-slate-400">{{ order.created_at[:16] if order.created_at else '-' }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-8 text-center text-slate-400">
+                    <i class="ri-gamepad-line text-3xl mb-2"></i>
+                    <p data-ar="لا توجد طلبات" data-en="No orders yet">لا توجد طلبات</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateServiceType() {
+    const serviceType = document.getElementById('service-type').value;
+    window.location.href = '/admin/user/{{ user.user_id }}/service-type?type=' + serviceType;
+}
+</script>
+{% endblock %}

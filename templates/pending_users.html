@@ -1,0 +1,127 @@
+{% extends "base_simple.html" %}
+
+{% block title %}طلبات الانضمام{% endblock %}
+{% block page_title %}<span data-ar="طلبات الانضمام المعلقة" data-en="Pending User Approvals">طلبات الانضمام المعلقة</span>{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <a href="/admin/users" class="btn btn-secondary">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للمستخدمين" data-en="Back to Users">العودة للمستخدمين</span>
+    </a>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+    <div class="desktop-table overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
+                <tr>
+                    <th class="px-5 py-3 text-right" data-ar="المعرف" data-en="User ID">المعرف</th>
+                    <th class="px-5 py-3 text-right" data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</th>
+                    <th class="px-5 py-3 text-right" data-ar="الاسم" data-en="Name">الاسم</th>
+                    <th class="px-5 py-3 text-right" data-ar="تاريخ التسجيل" data-en="Registered">تاريخ التسجيل</th>
+                    <th class="px-5 py-3 text-right" data-ar="الإجراءات" data-en="Actions">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for user in users %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-5 py-4 text-sm text-slate-600">{{ user.user_id }}</td>
+                    <td class="px-5 py-4 text-sm">
+                        {% if user.username %}
+                        <a href="https://t.me/{{ user.username }}" target="_blank" class="text-primary-500 hover:underline">@{{ user.username }}</a>
+                        {% else %}
+                        <span class="text-slate-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-sm font-medium text-slate-800">{{ user.first_name or '-' }}</td>
+                    <td class="px-5 py-4 text-sm text-slate-500">{{ user.created_at[:16] if user.created_at else '-' }}</td>
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-2">
+                            <select class="px-3 py-2 rounded-lg border border-slate-200 text-sm" id="service-{{ user.user_id }}">
+                                <option value="xena" selected>Xena Live</option>
+                                <option value="imo">IMO</option>
+                                <option value="both">Both</option>
+                            </select>
+                            <button onclick="approveUser({{ user.user_id }})" class="btn btn-primary text-sm">
+                                <i class="ri-check-line"></i>
+                                <span data-ar="قبول" data-en="Approve">قبول</span>
+                            </button>
+                            <a href="/admin/user/{{ user.user_id }}/reject" class="btn btn-danger text-sm">
+                                <i class="ri-close-line"></i>
+                                <span data-ar="رفض" data-en="Reject">رفض</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                        <i class="ri-user-add-line text-3xl mb-2"></i>
+                        <p data-ar="لا توجد طلبات معلقة" data-en="No pending users">لا توجد طلبات معلقة</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mobile-card p-4 space-y-3">
+        {% for user in users %}
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center">
+                    <i class="ri-user-add-line text-warning-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-slate-800">{{ user.first_name or user.username or user.user_id }}</p>
+                    <p class="text-xs text-slate-500">{{ user.created_at[:16] if user.created_at else '' }}</p>
+                </div>
+            </div>
+            <div class="mb-3">
+                <select class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" id="service-m-{{ user.user_id }}">
+                    <option value="xena" selected>Xena Live</option>
+                    <option value="imo">IMO</option>
+                    <option value="both">Both</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="approveUserMobile({{ user.user_id }})" class="btn btn-primary flex-1 text-sm">
+                    <i class="ri-check-line"></i> قبول
+                </button>
+                <a href="/admin/user/{{ user.user_id }}/reject" class="btn btn-danger flex-1 text-sm">
+                    <i class="ri-close-line"></i> رفض
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-slate-400">
+            <i class="ri-user-add-line text-3xl mb-2"></i>
+            <p>لا توجد طلبات معلقة</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-6 p-4 rounded-xl bg-primary-50 border border-primary-200">
+    <div class="flex items-start gap-3">
+        <i class="ri-information-line text-primary-600 text-xl"></i>
+        <p class="text-sm text-primary-700" data-ar="المستخدمون الجدد يجب الموافقة عليهم قبل أن يتمكنوا من استخدام خدمات الشحن و Xena Live. اختر نوع الخدمة قبل الموافقة." data-en="New users must be approved before they can use recharge and Xena Live services. Select the service type before approving.">
+            المستخدمون الجدد يجب الموافقة عليهم قبل أن يتمكنوا من استخدام خدمات الشحن و Xena Live. اختر نوع الخدمة قبل الموافقة.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveUser(userId) {
+    const serviceType = document.getElementById('service-' + userId).value;
+    window.location.href = '/admin/user/' + userId + '/approve?service_type=' + serviceType;
+}
+function approveUserMobile(userId) {
+    const serviceType = document.getElementById('service-m-' + userId).value;
+    window.location.href = '/admin/user/' + userId + '/approve?service_type=' + serviceType;
+}
+</script>
+{% endblock %}

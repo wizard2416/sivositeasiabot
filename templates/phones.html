@@ -1,0 +1,120 @@
+{% extends "base_simple.html" %}
+
+{% block title %}الأجهزة{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800" data-ar="الأجهزة المتصلة" data-en="Connected Devices">الأجهزة المتصلة</h1>
+    <div class="text-sm text-slate-500">
+        {{ phones|length }} <span data-ar="جهاز" data-en="devices">جهاز</span>
+    </div>
+</div>
+
+<div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-right font-medium">ID</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="الاسم" data-en="Name">الاسم</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="الحالة" data-en="Status">الحالة</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="البطارية" data-en="Battery">البطارية</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="مكتملة" data-en="Done">مكتملة</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="فاشلة" data-en="Failed">فاشلة</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="آخر ظهور" data-en="Last Seen">آخر ظهور</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {% for phone in phones %}
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="px-4 py-3 text-slate-400 font-mono text-xs">{{ phone.phone_id[:12] }}...</td>
+                    <td class="px-4 py-3 text-white font-medium">{{ phone.name or 'Phone' }}</td>
+                    <td class="px-4 py-3 text-center">
+                        {% if phone.status == 'online' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                            Online
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-500/20 text-slate-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
+                            Offline
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full {% if phone.battery_level > 50 %}bg-emerald-500{% elif phone.battery_level > 20 %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ phone.battery_level }}%"></div>
+                            </div>
+                            <span class="{% if phone.battery_level > 50 %}text-emerald-400{% elif phone.battery_level > 20 %}text-amber-400{% else %}text-rose-400{% endif %} text-xs font-medium">{{ phone.battery_level }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-emerald-400 font-medium">{{ phone.jobs_completed }}</td>
+                    <td class="px-4 py-3 text-rose-400 font-medium">{{ phone.jobs_failed }}</td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">{{ phone.last_seen[:16] if phone.last_seen else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                        <i class="ri-smartphone-line text-4xl mb-2 block"></i>
+                        <span data-ar="لا توجد أجهزة" data-en="No devices">لا توجد أجهزة</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="sm:hidden mt-4 space-y-3">
+    {% for phone in phones %}
+    <div class="bg-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl {% if phone.status == 'online' %}bg-emerald-500/20{% else %}bg-slate-700{% endif %} flex items-center justify-center">
+                    <i class="ri-smartphone-line {% if phone.status == 'online' %}text-emerald-400{% else %}text-slate-400{% endif %}"></i>
+                </div>
+                <div>
+                    <div class="text-white font-medium">{{ phone.name or 'Phone' }}</div>
+                    <div class="text-xs text-slate-500 font-mono">{{ phone.phone_id[:8] }}...</div>
+                </div>
+            </div>
+            {% if phone.status == 'online' %}
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            {% else %}
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-slate-500">Battery</span>
+                <span class="{% if phone.battery_level > 50 %}text-emerald-400{% elif phone.battery_level > 20 %}text-amber-400{% else %}text-rose-400{% endif %}">{{ phone.battery_level }}%</span>
+            </div>
+            <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full rounded-full {% if phone.battery_level > 50 %}bg-emerald-500{% elif phone.battery_level > 20 %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ phone.battery_level }}%"></div>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4 text-center">
+            <div class="flex-1 py-2 rounded-lg bg-emerald-500/10">
+                <div class="text-lg font-bold text-emerald-400">{{ phone.jobs_completed }}</div>
+                <div class="text-xs text-emerald-400/70">Done</div>
+            </div>
+            <div class="flex-1 py-2 rounded-lg bg-rose-500/10">
+                <div class="text-lg font-bold text-rose-400">{{ phone.jobs_failed }}</div>
+                <div class="text-xs text-rose-400/70">Failed</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

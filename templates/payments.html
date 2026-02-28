@@ -1,0 +1,220 @@
+{% extends "base_simple.html" %}
+
+{% block title %}الدفعات{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal { display: none; position: fixed; inset: 0; z-index: 100; }
+    .modal.active { display: flex; }
+    .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
+    .modal-content { position: relative; background: #1e293b; border-radius: 1rem; max-width: 400px; width: 100%; margin: auto; padding: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800" data-ar="الدفعات" data-en="Payments">الدفعات</h1>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-amber-600">{{ stats.pending_payments }}</div>
+        <div class="text-xs text-slate-500" data-ar="انتظار" data-en="Pending">انتظار</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-emerald-600">{{ stats.pending_qi_card }}</div>
+        <div class="text-xs text-slate-500">QI Card</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-violet-600">{{ stats.pending_zaincash }}</div>
+        <div class="text-xs text-slate-500">ZainCash</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-xl font-bold text-slate-800">{{ "{:,}".format(stats.total_approved_amount) }}</div>
+        <div class="text-xs text-slate-500">IQD</div>
+    </div>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('admin_payments') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {% if not payment_type and not status_filter %}bg-violet-600 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">All</a>
+    <a href="{{ url_for('admin_payments', payment_type='qi_card') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {% if payment_type == 'qi_card' %}bg-emerald-500 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">QI Card</a>
+    <a href="{{ url_for('admin_payments', payment_type='zaincash') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {% if payment_type == 'zaincash' %}bg-violet-600 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">ZainCash</a>
+    <span class="border-l mx-1"></span>
+    <a href="?status=pending" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {% if status_filter == 'pending' %}bg-amber-500 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">Pending</a>
+    <a href="?status=approved" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {% if status_filter == 'approved' %}bg-emerald-500 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">Approved</a>
+</div>
+
+<div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-right font-medium">ID</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="النوع" data-en="Type">النوع</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="المستخدم" data-en="User">المستخدم</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="المبلغ" data-en="Amount">المبلغ</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="الحالة" data-en="Status">الحالة</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="الإثبات" data-en="Proof">الإثبات</th>
+                    <th class="px-4 py-3 text-center font-medium"><i class="ri-more-line"></i></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {% for payment in payments %}
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="px-4 py-3 text-slate-300 font-mono text-xs">{{ payment.id }}</td>
+                    <td class="px-4 py-3">
+                        {% if payment.payment_type == 'qi_card' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">QI Card</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-violet-500/20 text-violet-400">ZainCash</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <a href="{{ url_for('admin_user_detail', user_id=payment.user_id) }}" class="text-violet-400 hover:text-violet-300">
+                            {{ payment.first_name or payment.username or payment.user_id }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-3 text-white font-medium">
+                        {% if payment.actual_amount %}
+                        {{ "{:,}".format(payment.actual_amount) }}
+                        {% else %}
+                        <span class="text-slate-500">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {% if payment.status == 'pending' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-400">Pending</span>
+                        {% elif payment.status == 'approved' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">Approved</span>
+                        {% elif payment.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-rose-500/20 text-rose-400">Rejected</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-500/20 text-slate-400">{{ payment.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {% if payment.proof_image_path %}
+                        <a href="{{ url_for('admin_payment_proof', payment_id=payment.id) }}" target="_blank" class="p-1.5 rounded hover:bg-violet-500/20 text-violet-400">
+                            <i class="ri-image-line"></i>
+                        </a>
+                        {% else %}
+                        <span class="text-slate-500">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {% if payment.status == 'pending' %}
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="openModal('modal-{{ payment.id }}')" class="p-1.5 rounded hover:bg-emerald-500/20 text-emerald-400" title="Approve">
+                                <i class="ri-check-line"></i>
+                            </button>
+                            <form action="{{ url_for('admin_reject_payment', payment_id=payment.id) }}" method="POST" class="inline">
+                                <button type="submit" class="p-1.5 rounded hover:bg-rose-500/20 text-rose-400" onclick="return confirm('Reject?')" title="Reject">
+                                    <i class="ri-close-line"></i>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="modal" id="modal-{{ payment.id }}">
+                            <div class="modal-overlay" onclick="closeModal('modal-{{ payment.id }}')"></div>
+                            <div class="modal-content">
+                                <h3 class="text-lg font-semibold text-white mb-4" data-ar="تحديد المبلغ" data-en="Set Amount">تحديد المبلغ</h3>
+                                <form action="{{ url_for('admin_different_amount_payment', payment_id=payment.id) }}" method="POST">
+                                    <div class="mb-4">
+                                        <label class="block text-sm text-slate-400 mb-2">Amount (IQD)</label>
+                                        <input type="number" name="actual_amount" class="w-full px-4 py-3 rounded-xl bg-slate-700 border-0 text-white placeholder-slate-400 focus:ring-2 focus:ring-violet-500 outline-none" required min="1" placeholder="Enter amount">
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="button" onclick="closeModal('modal-{{ payment.id }}')" class="flex-1 py-2 rounded-lg bg-slate-700 text-white">Cancel</button>
+                                        <button type="submit" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white">Approve</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <button class="p-1.5 rounded hover:bg-slate-600 text-slate-400">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                        <i class="ri-wallet-3-line text-4xl mb-2 block"></i>
+                        <span data-ar="لا توجد طلبات" data-en="No payments">لا توجد طلبات</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="p-3 border-t border-slate-700 flex items-center justify-between text-sm text-slate-400">
+        <span>{{ payments|length }} <span data-ar="طلب" data-en="payments">طلب</span></span>
+    </div>
+</div>
+
+<div class="sm:hidden mt-4 space-y-3">
+    {% for payment in payments %}
+    <div class="bg-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                {% if payment.payment_type == 'qi_card' %}
+                <span class="px-2 py-1 rounded text-xs bg-emerald-500/20 text-emerald-400">QI Card</span>
+                {% else %}
+                <span class="px-2 py-1 rounded text-xs bg-violet-500/20 text-violet-400">ZainCash</span>
+                {% endif %}
+                <span class="text-xs text-slate-500">#{{ payment.id }}</span>
+            </div>
+            {% if payment.status == 'pending' %}
+            <span class="px-2 py-1 rounded text-xs bg-amber-500/20 text-amber-400">Pending</span>
+            {% elif payment.status == 'approved' %}
+            <span class="px-2 py-1 rounded text-xs bg-emerald-500/20 text-emerald-400">Approved</span>
+            {% endif %}
+        </div>
+        <div class="text-white font-bold text-lg mb-2">{{ "{:,}".format(payment.actual_amount) if payment.actual_amount else '-' }} IQD</div>
+        <div class="text-slate-400 text-sm">{{ payment.first_name or payment.user_id }}</div>
+        {% if payment.status == 'pending' %}
+        <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+            <button onclick="openModal('modal-m-{{ payment.id }}')" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white text-sm">Approve</button>
+            {% if payment.proof_image_path %}
+            <a href="{{ url_for('admin_payment_proof', payment_id=payment.id) }}" target="_blank" class="py-2 px-4 rounded-lg bg-slate-700 text-white text-sm">
+                <i class="ri-image-line"></i>
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="modal" id="modal-m-{{ payment.id }}">
+            <div class="modal-overlay" onclick="closeModal('modal-m-{{ payment.id }}')"></div>
+            <div class="modal-content">
+                <h3 class="text-lg font-semibold text-white mb-4">Set Amount</h3>
+                <form action="{{ url_for('admin_different_amount_payment', payment_id=payment.id) }}" method="POST">
+                    <div class="mb-4">
+                        <input type="number" name="actual_amount" class="w-full px-4 py-3 rounded-xl bg-slate-700 border-0 text-white" required min="1" placeholder="Amount">
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-m-{{ payment.id }}')" class="flex-1 py-2 rounded-lg bg-slate-600 text-white">Cancel</button>
+                        <button type="submit" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white">Approve</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+</script>
+{% endblock %}

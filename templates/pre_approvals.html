@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Pre-Approvals{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-plus"></i> Pre-Approve Users</h2>
+    <a href="/admin/users" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+{% endwith %}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="table-container">
+            <h5 class="mb-3">Add Pre-Approval</h5>
+            <form action="/admin/pre-approvals/add" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Telegram User ID</label>
+                    <input type="text" class="form-control" name="user_id" placeholder="e.g. 123456789" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Service Type</label>
+                    <select class="form-select" name="service_type">
+                        <option value="xena" selected>Xena Live</option>
+                        <option value="imo">IMO</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Note (optional)</label>
+                    <input type="text" class="form-control" name="note" placeholder="e.g. Referred by Ali">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-lg"></i> Add Pre-Approval
+                </button>
+            </form>
+        </div>
+        
+        <div class="mt-4 alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            Pre-approved users will be automatically verified when they first start the bot.
+            If the user already exists, their service type will be updated immediately.
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="table-container">
+            <h5 class="mb-3">Pending Pre-Approvals</h5>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Service</th>
+                        <th>Note</th>
+                        <th>Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pre_approvals %}
+                    <tr>
+                        <td><code>{{ item.user_id }}</code></td>
+                        <td>
+                            {% if item.service_type == 'xena' %}
+                            <span class="badge bg-primary">Xena Live</span>
+                            {% elif item.service_type == 'imo' %}
+                            <span class="badge bg-info">IMO</span>
+                            {% else %}
+                            <span class="badge bg-success">Both</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.note or '-' }}</td>
+                        <td>{{ item.created_at[:16] if item.created_at else '-' }}</td>
+                        <td>
+                            <a href="/admin/pre-approvals/{{ item.user_id }}/remove" class="btn btn-sm btn-outline-danger" title="Remove">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">No pending pre-approvals</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

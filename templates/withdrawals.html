@@ -1,0 +1,200 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Withdrawals{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+        <span class="px-2 py-1 rounded bg-green-100 text-green-600 text-sm">USD</span>
+        <span data-ar="طلبات السحب" data-en="Withdrawals">طلبات السحب</span>
+    </h1>
+</div>
+
+<div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+    <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+        <i class="ri-settings-3-line text-slate-400"></i>
+        <span data-ar="إعدادات السحب" data-en="Withdrawal Settings">إعدادات السحب</span>
+    </h3>
+    <form method="POST" action="/admin/withdrawal/settings" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="text-xs text-slate-500" data-ar="المبلغ (IQD)" data-en="Amount (IQD)">المبلغ (IQD)</label>
+            <input type="number" name="rate_iqd" value="{{ settings.get('usd_rate_iqd', '100000') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-32">
+        </div>
+        <div class="text-slate-400">=</div>
+        <div>
+            <label class="text-xs text-slate-500" data-ar="المبلغ (USD)" data-en="Amount (USD)">المبلغ (USD)</label>
+            <input type="number" step="0.01" name="rate_usd" value="{{ settings.get('usd_rate_usd', '55.50') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-24">
+        </div>
+        <div>
+            <label class="text-xs text-slate-500" data-ar="الحد الأدنى ($)" data-en="Minimum ($)">الحد الأدنى ($)</label>
+            <input type="number" name="minimum" value="{{ settings.get('usd_minimum', '50') }}" 
+                   class="px-3 py-2 rounded-lg border text-sm bg-white w-20">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700">
+            <i class="ri-save-line"></i> <span data-ar="حفظ" data-en="Save">حفظ</span>
+        </button>
+    </form>
+</div>
+
+<div class="grid grid-cols-3 gap-3 mb-4">
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-slate-800">{{ withdrawals|length }}</div>
+        <div class="text-xs text-slate-500" data-ar="الطلبات" data-en="Requests">الطلبات</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-amber-600">{{ withdrawals|selectattr('status', 'eq', 'pending')|list|length }}</div>
+        <div class="text-xs text-slate-500" data-ar="قيد الانتظار" data-en="Pending">قيد الانتظار</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div class="text-2xl font-bold text-emerald-600">${{ "%.2f"|format(withdrawals|selectattr('status', 'eq', 'approved')|sum(attribute='amount_usd')) }}</div>
+        <div class="text-xs text-slate-500" data-ar="المدفوع" data-en="Paid">المدفوع</div>
+    </div>
+</div>
+
+<div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="p-3 border-b border-slate-700">
+        <div class="relative">
+            <i class="ri-search-line absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" class="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-700 border-0 text-white placeholder-slate-400 text-sm focus:ring-2 focus:ring-violet-500 outline-none" placeholder="البحث...">
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="withdrawalsTable">
+            <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-right font-medium">ID</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="المستخدم" data-en="User">المستخدم</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="المبلغ" data-en="Amount">المبلغ</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="النوع" data-en="Type">النوع</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="العنوان" data-en="Address">العنوان</th>
+                    <th class="px-4 py-3 text-center font-medium" data-ar="الحالة" data-en="Status">الحالة</th>
+                    <th class="px-4 py-3 text-right font-medium" data-ar="التاريخ" data-en="Date">التاريخ</th>
+                    <th class="px-4 py-3 text-center font-medium"><i class="ri-more-line"></i></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {% for w in withdrawals %}
+                <tr class="hover:bg-slate-700/50 transition" data-status="{{ w.status }}">
+                    <td class="px-4 py-3 text-slate-300 font-mono text-xs">{{ w.id }}</td>
+                    <td class="px-4 py-3 text-slate-300">
+                        <a href="/admin/user/{{ w.user_id }}" class="hover:text-violet-400">{{ w.first_name or w.user_id }}</a>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-emerald-400 font-bold">${{ "%.2f"|format(w.amount_usd) }}</div>
+                        <div class="text-slate-500 text-xs">{{ "{:,}".format(w.amount_iqd) }} IQD</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if w.withdrawal_type == 'Binance ID' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-400">🔶 Binance</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400">💎 TRC20</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-slate-300 font-mono text-xs max-w-xs truncate" title="{{ w.wallet_address }}">{{ w.wallet_address }}</td>
+                    <td class="px-4 py-3 text-center">
+                        {% if w.status == 'approved' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">Approved</span>
+                        {% elif w.status == 'pending' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-400">Pending</span>
+                        {% elif w.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-rose-500/20 text-rose-400">Rejected</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-500/20 text-slate-400">{{ w.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">{{ w.created_at[:16] if w.created_at else '-' }}</td>
+                    <td class="px-2 py-3 text-center whitespace-nowrap">
+                        {% if w.status == 'pending' %}
+                        <div class="inline-flex items-center gap-0">
+                            <form method="POST" action="/admin/withdrawal/approve/{{ w.id }}" class="inline">
+                                <button type="submit" class="p-1 text-emerald-400" title="Approve">
+                                    <i class="ri-check-line text-sm"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="/admin/withdrawal/reject/{{ w.id }}" class="inline">
+                                <button type="submit" class="p-1 text-rose-400" title="Reject & Refund">
+                                    <i class="ri-close-line text-sm"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <i class="ri-eye-line text-slate-400 text-sm"></i>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-12 text-center text-slate-500">
+                        <i class="ri-wallet-line text-4xl mb-2 block"></i>
+                        <span data-ar="لا توجد طلبات سحب" data-en="No withdrawal requests">لا توجد طلبات سحب</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="p-3 border-t border-slate-700 flex items-center justify-between text-sm text-slate-400">
+        <span>{{ withdrawals|length }} <span data-ar="سجل" data-en="records">سجل</span></span>
+    </div>
+</div>
+
+<div class="sm:hidden mt-4 space-y-3">
+    {% for w in withdrawals %}
+    <div class="bg-slate-800 rounded-xl p-4" data-status="{{ w.status }}">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-slate-500">#{{ w.id }}</span>
+            {% if w.status == 'approved' %}
+            <span class="px-2 py-1 rounded text-xs bg-emerald-500/20 text-emerald-400">Approved</span>
+            {% elif w.status == 'pending' %}
+            <span class="px-2 py-1 rounded text-xs bg-amber-500/20 text-amber-400">Pending</span>
+            {% elif w.status == 'rejected' %}
+            <span class="px-2 py-1 rounded text-xs bg-rose-500/20 text-rose-400">Rejected</span>
+            {% endif %}
+        </div>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-emerald-400 font-bold">${{ "%.2f"|format(w.amount_usd) }}</span>
+            <span class="text-slate-400 text-xs">{{ "{:,}".format(w.amount_iqd) }} IQD</span>
+        </div>
+        <div class="text-slate-400 font-mono text-xs mb-2 truncate">{{ w.wallet_address }}</div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-3">
+            <span>{{ w.first_name or w.user_id }}</span>
+            <span>{{ w.created_at[:10] if w.created_at else '-' }}</span>
+        </div>
+        {% if w.status == 'pending' %}
+        <div class="flex gap-2 pt-3 border-t border-slate-700">
+            <form method="POST" action="/admin/withdrawal/approve/{{ w.id }}" class="flex-1">
+                <button class="w-full py-2 rounded-lg bg-emerald-600 text-white text-sm">Approve</button>
+            </form>
+            <form method="POST" action="/admin/withdrawal/reject/{{ w.id }}" class="flex-1">
+                <button class="w-full py-2 rounded-lg bg-rose-600 text-white text-sm">Reject</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#withdrawalsTable tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}لوحة التحكم{% endblock %} - Sivosys</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['IBM Plex Sans Arabic', 'sans-serif'],
+                        'english': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+                        success: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d' },
+                        warning: { 50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706' },
+                        danger: { 50: '#fef2f2', 100: '#fee2e2', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c' },
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 72px;
+        }
+        html[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+        html[dir="ltr"] { font-family: 'Inter', sans-serif; }
+        
+        .sidebar { width: var(--sidebar-width); transition: width 0.3s ease; }
+        .main-content { margin-right: var(--sidebar-width); transition: margin 0.3s ease; }
+        html[dir="ltr"] .main-content { margin-right: 0; margin-left: var(--sidebar-width); }
+        
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(100%); position: fixed; z-index: 50; }
+            html[dir="ltr"] .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-right: 0 !important; margin-left: 0 !important; }
+        }
+        
+        .card-hover { transition: all 0.2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
+        
+        .badge { font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 9999px; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); transform: translateY(-1px); }
+        .btn-secondary { background: #f1f5f9; color: #475569; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-ghost { background: transparent; color: #64748b; }
+        .btn-ghost:hover { background: #f1f5f9; color: #1e293b; }
+        
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+        .status-dot.offline { background: #94a3b8; }
+        .status-dot.warning { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+        .status-dot.error { background: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
+        
+        .health-banner { border-radius: 1rem; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        .health-good { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; }
+        .health-attention { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; }
+        .health-critical { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fecaca; }
+        
+        .drawer { position: fixed; top: 0; right: 0; width: 480px; max-width: 100vw; height: 100vh; background: white; box-shadow: -10px 0 40px rgba(0,0,0,0.1); z-index: 60; transform: translateX(100%); transition: transform 0.3s ease; }
+        html[dir="ltr"] .drawer { right: auto; left: 0; transform: translateX(-100%); }
+        .drawer.open { transform: translateX(0); }
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 55; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+        
+        .desktop-table { display: none; }
+        .mobile-card { display: block; }
+        @media (min-width: 769px) {
+            .desktop-table.show-on-desktop { display: block; }
+            .mobile-card.hide-on-desktop { display: none; }
+        }
+        
+        .touch-target { min-height: 44px; min-width: 44px; }
+        
+        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: skeleton 1.5s infinite; }
+        @keyframes skeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen transition-colors duration-300">
+    {% if session.get('admin_logged_in') %}
+    
+    <aside class="sidebar fixed top-0 right-0 h-screen bg-slate-900 flex flex-col" id="sidebar">
+        <div class="p-5 border-b border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                    <i class="ri-dashboard-3-line text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-semibold text-lg" data-ar="Sivosys" data-en="Sivosys">Sivosys</h1>
+                    <p class="text-slate-400 text-xs" data-ar="لوحة التحكم" data-en="Control Panel">لوحة التحكم</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="flex-1 py-4 px-3">
+            <ul class="space-y-1">
+                <li>
+                    <a href="/admin" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all touch-target {% if request.endpoint == 'dashboard' %}bg-slate-800 text-white{% endif %}">
+                        <i class="ri-dashboard-line text-xl"></i>
+                        <span data-ar="لوحة القيادة" data-en="Dashboard">لوحة القيادة</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all touch-target {% if 'settings' in request.path %}bg-slate-800 text-white{% endif %}">
+                        <i class="ri-settings-4-line text-xl"></i>
+                        <span data-ar="الإعدادات" data-en="Settings">الإعدادات</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-700/50 space-y-2">
+            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all touch-target" id="dark-mode-btn">
+                <i class="ri-moon-line" id="dark-mode-icon"></i>
+                <span id="dark-mode-text" data-ar="الوضع الليلي" data-en="Dark Mode">الوضع الليلي</span>
+            </button>
+            <button onclick="toggleLanguage()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all touch-target">
+                <i class="ri-translate-2"></i>
+                <span id="lang-toggle-text">English</span>
+            </button>
+            <a href="/admin/logout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-slate-400 hover:bg-danger-500/10 hover:text-danger-500 transition-all touch-target">
+                <i class="ri-logout-box-line"></i>
+                <span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span>
+            </a>
+        </div>
+    </aside>
+    
+    <div class="sidebar-overlay fixed inset-0 bg-black/30 z-40 hidden lg:hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <main class="main-content min-h-screen">
+        <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-slate-200/50 dark:border-slate-700/50 px-4 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 touch-target">
+                        <i class="ri-menu-line text-xl text-slate-600"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-800 dark:text-white">{% block page_title %}{% endblock %}</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400" id="current-time"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 touch-target relative">
+                        <i class="ri-notification-3-line text-xl text-slate-600 dark:text-slate-300"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="p-4 lg:p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-xl flex items-center gap-3 {% if category == 'success' %}bg-success-50 text-success-700 border border-success-200{% elif category == 'danger' or category == 'error' %}bg-danger-50 text-danger-700 border border-danger-200{% elif category == 'warning' %}bg-warning-50 text-warning-700 border border-warning-200{% else %}bg-primary-50 text-primary-700 border border-primary-200{% endif %}">
+                        <i class="{% if category == 'success' %}ri-checkbox-circle-line{% elif category == 'danger' or category == 'error' %}ri-error-warning-line{% else %}ri-information-line{% endif %} text-xl"></i>
+                        <span>{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="mr-auto text-current opacity-50 hover:opacity-100">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% else %}
+    <div class="min-h-screen flex items-center justify-center p-4">
+        {% block content_public %}{% endblock %}
+    </div>
+    {% endif %}
+    
+    <script>
+        const ERBIL_TZ = 'Asia/Baghdad';
+        let currentLang = localStorage.getItem('lang') || 'ar';
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+        
+        function formatErbilTime(date, lang) {
+            const options = { 
+                timeZone: ERBIL_TZ,
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: true
+            };
+            if (lang === 'ar') {
+                return new Intl.DateTimeFormat('ar-IQ', options).format(date);
+            }
+            return new Intl.DateTimeFormat('en-IQ', options).format(date);
+        }
+        
+        function updateTime() {
+            const now = new Date();
+            const timeEl = document.getElementById('current-time');
+            if (timeEl) {
+                timeEl.textContent = formatErbilTime(now, currentLang);
+            }
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('lang', currentLang);
+            applyLanguage();
+        }
+        
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            localStorage.setItem('darkMode', darkMode);
+            applyDarkMode();
+        }
+        
+        function applyDarkMode() {
+            const html = document.getElementById('html-root');
+            const icon = document.getElementById('dark-mode-icon');
+            const text = document.getElementById('dark-mode-text');
+            
+            if (darkMode) {
+                html.classList.add('dark');
+                if (icon) icon.className = 'ri-sun-line';
+                if (text) {
+                    text.setAttribute('data-ar', 'الوضع النهاري');
+                    text.setAttribute('data-en', 'Light Mode');
+                    text.textContent = currentLang === 'ar' ? 'الوضع النهاري' : 'Light Mode';
+                }
+            } else {
+                html.classList.remove('dark');
+                if (icon) icon.className = 'ri-moon-line';
+                if (text) {
+                    text.setAttribute('data-ar', 'الوضع الليلي');
+                    text.setAttribute('data-en', 'Dark Mode');
+                    text.textContent = currentLang === 'ar' ? 'الوضع الليلي' : 'Dark Mode';
+                }
+            }
+        }
+        
+        function applyLanguage() {
+            const html = document.getElementById('html-root');
+            html.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            html.lang = currentLang;
+            
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${currentLang}`);
+            });
+            
+            const toggleText = document.getElementById('lang-toggle-text');
+            if (toggleText) {
+                toggleText.textContent = currentLang === 'ar' ? 'English' : 'العربية';
+            }
+            
+            updateTime();
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('hidden');
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            applyDarkMode();
+            applyLanguage();
+            updateTime();
+            setInterval(updateTime, 60000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

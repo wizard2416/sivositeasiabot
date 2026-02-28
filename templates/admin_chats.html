@@ -1,0 +1,91 @@
+{% extends "base_simple.html" %}
+
+{% block title %}المحادثات{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin" class="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-1">
+        <i class="ri-arrow-right-line rtl:rotate-180"></i>
+        <span data-ar="العودة للوحة التحكم" data-en="Back to Dashboard">العودة للوحة التحكم</span>
+    </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <h1 class="text-xl font-bold text-slate-800" data-ar="محادثات المستخدمين" data-en="User Chats">محادثات المستخدمين</h1>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-1">
+        <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="p-3 border-b border-slate-700">
+                <div class="relative">
+                    <i class="ri-search-line absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchUsers" class="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-700 border-0 text-white placeholder-slate-400 text-sm focus:ring-2 focus:ring-violet-500 outline-none" placeholder="بحث...">
+                </div>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto" id="userList">
+                {% for user in users_with_chats %}
+                <a href="/admin/chats/{{ user.user_id }}" class="flex items-center justify-between p-4 border-b border-slate-700 hover:bg-slate-700/50 transition {% if selected_user == user.user_id %}bg-violet-600/20 border-r-4 border-r-violet-500{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                            <i class="ri-user-line text-slate-400"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-white">{{ user.username or 'User ' + user.user_id|string }}</p>
+                            <p class="text-xs text-slate-500">ID: {{ user.user_id }}</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-violet-500/20 text-violet-400">{{ user.message_count }}</span>
+                </a>
+                {% else %}
+                <div class="text-center py-12 text-slate-500">
+                    <i class="ri-chat-3-line text-4xl mb-2 block"></i>
+                    <p data-ar="لا توجد محادثات" data-en="No chats">لا توجد محادثات</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="lg:col-span-2">
+        <div class="bg-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            {% if messages %}
+            <div class="p-4 border-b border-slate-700">
+                <h3 class="font-semibold text-white">
+                    <span data-ar="المحادثة مع" data-en="Chat with">المحادثة مع</span>
+                    {{ selected_username or 'User ' + selected_user|string }}
+                </h3>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto space-y-4 chat-messages">
+                {% for msg in messages %}
+                <div class="flex {% if msg.direction == 'out' %}justify-start{% else %}justify-end{% endif %}">
+                    <div class="max-w-[70%] {% if msg.direction == 'out' %}bg-violet-600 text-white{% else %}bg-slate-700 text-slate-200{% endif %} px-4 py-2 rounded-2xl">
+                        <p class="text-sm">{{ msg.content }}</p>
+                        <p class="text-xs {% if msg.direction == 'out' %}text-violet-300{% else %}text-slate-500{% endif %} mt-1">{{ msg.created_at[:16] }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-16 text-slate-500">
+                <i class="ri-chat-3-line text-4xl mb-3 block"></i>
+                <p data-ar="اختر مستخدماً لعرض سجل المحادثة" data-en="Select a user to view chat">اختر مستخدماً لعرض سجل المحادثة</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchUsers').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const items = document.querySelectorAll('#userList > a');
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

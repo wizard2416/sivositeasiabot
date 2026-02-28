@@ -1,0 +1,71 @@
+{% extends "base_simple.html" %}
+
+{% block title %}تعديل الرصيد{% endblock %}
+{% block page_title %}<span data-ar="تعديل الرصيد" data-en="Adjust Balance">تعديل الرصيد</span>{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-success-100 flex items-center justify-center">
+            <i class="ri-money-dollar-circle-line text-xl text-success-600"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ user.username or user.user_id }}</h2>
+            <p class="text-sm text-slate-500">ID: {{ user.user_id }}</p>
+        </div>
+    </div>
+    <a href="/admin/user/{{ user.user_id }}" class="btn btn-secondary">
+        <i class="ri-arrow-right-line"></i>
+        <span data-ar="العودة" data-en="Back">العودة</span>
+    </a>
+</div>
+
+<div class="max-w-md mx-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-6">
+        <div class="text-center mb-6">
+            <p class="text-slate-500 mb-1" data-ar="العملات" data-en="Coins">العملات</p>
+            <h2 class="text-3xl font-bold text-primary-600">🪙 {{ "{:,.0f}".format(user.balance_coins or 0) }}</h2>
+            <p class="text-sm text-slate-400 mt-1">{{ "{:,.0f}".format(user.balance_iqd) }} IQD</p>
+        </div>
+        
+        <form method="POST" action="/admin/user/{{ user.user_id }}/balance" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" data-ar="نوع العملية" data-en="Operation">نوع العملية</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="operation" value="add" checked class="peer sr-only">
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center peer-checked:border-success-500 peer-checked:bg-success-50 dark:peer-checked:bg-success-900/20 transition-all">
+                            <i class="ri-add-circle-line text-xl text-success-600"></i>
+                            <p class="text-sm mt-1 text-slate-700 dark:text-slate-300" data-ar="إضافة" data-en="Add">إضافة</p>
+                        </div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="operation" value="subtract" class="peer sr-only">
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center peer-checked:border-danger-500 peer-checked:bg-danger-50 dark:peer-checked:bg-danger-900/20 transition-all">
+                            <i class="ri-subtract-line text-xl text-danger-600"></i>
+                            <p class="text-sm mt-1 text-slate-700 dark:text-slate-300" data-ar="خصم" data-en="Subtract">خصم</p>
+                        </div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="operation" value="set" class="peer sr-only">
+                        <div class="p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 text-center peer-checked:border-primary-500 peer-checked:bg-primary-50 dark:peer-checked:bg-primary-900/20 transition-all">
+                            <i class="ri-refresh-line text-xl text-primary-600"></i>
+                            <p class="text-sm mt-1 text-slate-700 dark:text-slate-300" data-ar="تعيين" data-en="Set">تعيين</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" data-ar="المبلغ (دينار)" data-en="Amount (IQD)">المبلغ (دينار)</label>
+                <input type="number" name="amount" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" placeholder="0" required min="0">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full py-3 text-lg">
+                <i class="ri-check-line"></i>
+                <span data-ar="تطبيق التغيير" data-en="Apply Change">تطبيق التغيير</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

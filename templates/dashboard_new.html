@@ -1,0 +1,562 @@
+{% extends "base_new.html" %}
+
+{% block title %}لوحة القيادة{% endblock %}
+{% block page_title %}<span data-ar="لوحة القيادة" data-en="Dashboard">لوحة القيادة</span>{% endblock %}
+
+{% block content %}
+{% set pending_payments = stats.get('pending_payments', 0) %}
+{% set pending_users = stats.get('pending_users', 0) %}
+{% set offline_phones = stats.get('offline_phones', 0) %}
+{% set has_attention = pending_payments > 0 or pending_users > 0 or offline_phones > 0 or processing_paused or bot_paused %}
+{% set health_status = 'critical' if (bot_paused or offline_phones > 0) else ('attention' if (pending_payments > 0 or pending_users > 0 or processing_paused) else 'good') %}
+
+<div class="health-banner mb-6 health-{{ health_status }}">
+    <div class="w-12 h-12 rounded-full flex items-center justify-center {% if health_status == 'good' %}bg-success-500{% elif health_status == 'attention' %}bg-warning-500{% else %}bg-danger-500{% endif %}">
+        <i class="{% if health_status == 'good' %}ri-checkbox-circle-line{% elif health_status == 'attention' %}ri-error-warning-line{% else %}ri-alert-line{% endif %} text-white text-2xl"></i>
+    </div>
+    <div class="flex-1">
+        <h3 class="font-semibold {% if health_status == 'good' %}text-success-700{% elif health_status == 'attention' %}text-warning-700{% else %}text-danger-700{% endif %}">
+            {% if health_status == 'good' %}
+            <span data-ar="النظام يعمل بشكل طبيعي" data-en="System Running Normally">النظام يعمل بشكل طبيعي</span>
+            {% elif health_status == 'attention' %}
+            <span data-ar="يحتاج انتباهك" data-en="Needs Attention">يحتاج انتباهك</span>
+            {% else %}
+            <span data-ar="تحتاج تدخل فوري" data-en="Critical - Action Required">تحتاج تدخل فوري</span>
+            {% endif %}
+        </h3>
+        <p class="text-sm {% if health_status == 'good' %}text-success-600{% elif health_status == 'attention' %}text-warning-600{% else %}text-danger-600{% endif %} mt-0.5">
+            {% if health_status == 'good' %}
+            <span data-ar="كل شيء يعمل بسلاسة" data-en="Everything is running smoothly">كل شيء يعمل بسلاسة</span>
+            {% elif health_status == 'attention' %}
+            <span data-ar="هناك عناصر تنتظر مراجعتك" data-en="Items waiting for your review">هناك عناصر تنتظر مراجعتك</span>
+            {% else %}
+            <span data-ar="النظام متوقف أو هناك أجهزة غير متصلة" data-en="System stopped or devices offline">النظام متوقف أو هناك أجهزة غير متصلة</span>
+            {% endif %}
+        </p>
+    </div>
+    {% if bot_paused %}
+    <span class="badge bg-danger-100 text-danger-700">
+        <i class="ri-tools-line"></i>
+        <span data-ar="وضع الصيانة" data-en="Maintenance Mode">وضع الصيانة</span>
+    </span>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                <i class="ri-group-line text-primary-600 dark:text-primary-400 text-xl"></i>
+            </div>
+            <span class="text-xs text-slate-400" data-ar="إجمالي" data-en="Total">إجمالي</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 dark:text-white">{{ stats.total_users }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="المستخدمين" data-en="Users">المستخدمين</p>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                <i class="ri-bank-card-line text-success-600 dark:text-success-400 text-xl"></i>
+            </div>
+            <div class="text-left">
+                <span id="cards-change" class="text-xs font-medium"></span>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 dark:text-white">{{ stats.verified_cards }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="البطاقات الناجحة" data-en="Verified Cards">البطاقات الناجحة</p>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center">
+                <i class="ri-time-line text-warning-600 dark:text-warning-400 text-xl"></i>
+            </div>
+            <span class="text-xs text-slate-400" data-ar="قيد الانتظار" data-en="Pending">قيد الانتظار</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 dark:text-white">{{ stats.pending_cards }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="البطاقات" data-en="Cards">البطاقات</p>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                <i class="ri-smartphone-line text-slate-600 dark:text-slate-300 text-xl"></i>
+            </div>
+            <span class="status-dot {% if stats.online_phones > 0 %}online{% else %}offline{% endif %}"></span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 dark:text-white">{{ stats.online_phones }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="أجهزة متصلة" data-en="Devices Online">أجهزة متصلة</p>
+    </div>
+    
+    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 card-hover border border-indigo-400/20 col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                <i class="ri-percent-line text-white text-xl"></i>
+            </div>
+            <span id="success-trend" class="text-xs font-medium text-white/80"></span>
+        </div>
+        <p class="text-2xl font-bold text-white" id="success-rate-value">
+            {% if stats.total_cards > 0 %}
+            {{ "%.1f"|format(stats.verified_cards / stats.total_cards * 100) }}%
+            {% else %}
+            0%
+            {% endif %}
+        </p>
+        <p class="text-sm text-white/80" data-ar="نسبة النجاح" data-en="Success Rate">نسبة النجاح</p>
+        <div class="mt-3 bg-white/20 rounded-full h-2 overflow-hidden">
+            <div class="bg-white h-full rounded-full transition-all duration-500" id="success-bar" style="width: {% if stats.total_cards > 0 %}{{ (stats.verified_cards / stats.total_cards * 100)|int }}{% else %}0{% endif %}%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center">
+                <i class="ri-money-dollar-circle-line text-success-600 dark:text-success-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="إجمالي الشحن" data-en="Total Recharged">إجمالي الشحن</p>
+                <p class="text-xl font-bold text-slate-800 dark:text-white">{{ "{:,.0f}".format(stats.total_amount) }} <span class="text-sm font-normal text-slate-400">IQD</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl {% if bot_paused %}bg-danger-100 dark:bg-danger-900/30{% else %}bg-success-100 dark:bg-success-900/30{% endif %} flex items-center justify-center">
+                <i class="{% if bot_paused %}ri-stop-circle-line text-danger-600 dark:text-danger-400{% else %}ri-robot-line text-success-600 dark:text-success-400{% endif %} text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="حالة البوت" data-en="Bot Status">حالة البوت</p>
+                <p class="text-xl font-bold {% if bot_paused %}text-danger-600{% else %}text-success-600{% endif %}">
+                    {% if bot_paused %}
+                    <span data-ar="متوقف" data-en="Stopped">متوقف</span>
+                    {% else %}
+                    <span data-ar="يعمل" data-en="Online">يعمل</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 card-hover border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl {% if processing_paused %}bg-warning-100 dark:bg-warning-900/30{% else %}bg-success-100 dark:bg-success-900/30{% endif %} flex items-center justify-center">
+                <i class="{% if processing_paused %}ri-pause-circle-line text-warning-600 dark:text-warning-400{% else %}ri-play-circle-line text-success-600 dark:text-success-400{% endif %} text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="معالجة البطاقات" data-en="Card Processing">معالجة البطاقات</p>
+                <p class="text-xl font-bold {% if processing_paused %}text-warning-600{% else %}text-success-600{% endif %}">
+                    {% if processing_paused %}
+                    <span data-ar="متوقف مؤقتاً" data-en="Paused">متوقف مؤقتاً</span>
+                    {% else %}
+                    <span data-ar="نشط" data-en="Active">نشط</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-line-chart-line text-primary-500"></i>
+                <span data-ar="البطاقات خلال 7 أيام" data-en="Cards (Last 7 Days)">البطاقات خلال 7 أيام</span>
+            </h3>
+        </div>
+        <div class="h-64">
+            <canvas id="cardsChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-bar-chart-box-line text-success-500"></i>
+                <span data-ar="الإيرادات خلال 7 أيام" data-en="Revenue (Last 7 Days)">الإيرادات خلال 7 أيام</span>
+            </h3>
+        </div>
+        <div class="h-64">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-pie-chart-line text-warning-500"></i>
+                <span data-ar="حالة البطاقات" data-en="Card Status">حالة البطاقات</span>
+            </h3>
+        </div>
+        <div class="h-64 flex items-center justify-center">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-bank-card-2-line text-primary-500"></i>
+                <span data-ar="طرق الدفع" data-en="Payment Methods">طرق الدفع</span>
+            </h3>
+        </div>
+        <div class="h-64 flex items-center justify-center">
+            <canvas id="paymentChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% if has_attention %}
+<div class="bg-white rounded-2xl p-6 border border-slate-100 mb-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+        <i class="ri-notification-3-line text-warning-500"></i>
+        <span data-ar="يحتاج انتباهك" data-en="Needs Your Attention">يحتاج انتباهك</span>
+    </h3>
+    <div class="space-y-3">
+        {% if pending_payments > 0 %}
+        <a href="/admin/settings#payments" class="flex items-center justify-between p-4 rounded-xl bg-warning-50 hover:bg-warning-100 transition-all touch-target">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-warning-500 flex items-center justify-center">
+                    <i class="ri-wallet-3-line text-white"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-slate-800" data-ar="طلبات دفع تنتظر الموافقة" data-en="Payment requests waiting for approval">طلبات دفع تنتظر الموافقة</p>
+                    <p class="text-sm text-slate-500">{{ pending_payments }} <span data-ar="طلب" data-en="requests">طلب</span></p>
+                </div>
+            </div>
+            <i class="ri-arrow-left-s-line text-slate-400 text-xl rtl:rotate-180"></i>
+        </a>
+        {% endif %}
+        
+        {% if pending_users > 0 %}
+        <a href="/admin/settings#users" class="flex items-center justify-between p-4 rounded-xl bg-primary-50 hover:bg-primary-100 transition-all touch-target">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-primary-500 flex items-center justify-center">
+                    <i class="ri-user-add-line text-white"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-slate-800" data-ar="مستخدمين جدد ينتظرون الموافقة" data-en="New users waiting for approval">مستخدمين جدد ينتظرون الموافقة</p>
+                    <p class="text-sm text-slate-500">{{ pending_users }} <span data-ar="مستخدم" data-en="users">مستخدم</span></p>
+                </div>
+            </div>
+            <i class="ri-arrow-left-s-line text-slate-400 text-xl rtl:rotate-180"></i>
+        </a>
+        {% endif %}
+        
+        {% if offline_phones > 0 %}
+        <a href="/admin/settings#phones" class="flex items-center justify-between p-4 rounded-xl bg-danger-50 hover:bg-danger-100 transition-all touch-target">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-danger-500 flex items-center justify-center">
+                    <i class="ri-smartphone-line text-white"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-slate-800" data-ar="أجهزة غير متصلة" data-en="Devices offline">أجهزة غير متصلة</p>
+                    <p class="text-sm text-slate-500">{{ offline_phones }} <span data-ar="جهاز" data-en="devices">جهاز</span></p>
+                </div>
+            </div>
+            <i class="ri-arrow-left-s-line text-slate-400 text-xl rtl:rotate-180"></i>
+        </a>
+        {% endif %}
+        
+        {% if processing_paused %}
+        <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-500 flex items-center justify-center">
+                    <i class="ri-pause-line text-white"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-slate-800" data-ar="معالجة البطاقات متوقفة" data-en="Card processing is paused">معالجة البطاقات متوقفة</p>
+                    <p class="text-sm text-slate-500" data-ar="البطاقات الجديدة لن تُعالج" data-en="New cards won't be processed">البطاقات الجديدة لن تُعالج</p>
+                </div>
+            </div>
+            <form method="POST" action="/admin/settings/toggle-processing">
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i class="ri-play-line"></i>
+                    <span data-ar="استئناف" data-en="Resume">استئناف</span>
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-file-list-3-line text-slate-400"></i>
+                <span data-ar="آخر العمليات" data-en="Recent Orders">آخر العمليات</span>
+            </h3>
+            <a href="/admin/cards" class="text-sm text-primary-500 hover:text-primary-600" data-ar="عرض الكل" data-en="View All">عرض الكل</a>
+        </div>
+        <div class="mobile-card p-4 space-y-3">
+            {% for order in recent_orders[:5] %}
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="badge {% if order.status == 'verified' or order.status == 'completed' %}bg-success-100 text-success-700{% elif order.status == 'pending' or order.status == 'processing' %}bg-warning-100 text-warning-700{% else %}bg-danger-100 text-danger-700{% endif %}">{{ order.status }}</span>
+                    </div>
+                    <span class="text-sm text-slate-500 dark:text-slate-400">#{{ order.order_num }}</span>
+                </div>
+                
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-lg font-bold text-slate-800 dark:text-white">{{ order.amount }}</span>
+                    <span class="badge {% if order.product == 'Xena Live' %}bg-purple-100 text-purple-700{% else %}bg-primary-100 text-primary-700{% endif %}">{{ order.product }}</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 text-sm mt-3 pt-3 border-t border-slate-200 dark:border-slate-600">
+                    <div>
+                        <span class="text-slate-400 text-xs" data-ar="المستخدم" data-en="User">المستخدم</span>
+                        <p class="text-slate-700 dark:text-slate-300 font-medium truncate">{{ order.username or order.user_id }}</p>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-xs" data-ar="الوقت" data-en="Time">الوقت</span>
+                        <p class="text-slate-700 dark:text-slate-300">{{ order.created_at[11:19] if order.created_at else '-' }}</p>
+                    </div>
+                    {% if order.product == 'Asiacell' %}
+                    <div>
+                        <span class="text-slate-400 text-xs" data-ar="الرقم" data-en="PIN">الرقم</span>
+                        <p class="text-slate-700 dark:text-slate-300 font-mono text-xs">{{ order.details }}</p>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-xs" data-ar="الجهاز" data-en="Device">الجهاز</span>
+                        <p class="text-slate-700 dark:text-slate-300 truncate">{{ order.phone or '-' }}</p>
+                    </div>
+                    {% else %}
+                    <div class="col-span-2">
+                        <span class="text-slate-400 text-xs" data-ar="التفاصيل" data-en="Details">التفاصيل</span>
+                        <p class="text-slate-700 dark:text-slate-300">{{ order.details }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if order.result %}
+                <div class="mt-2 p-2 rounded bg-slate-100 dark:bg-slate-600">
+                    <span class="text-slate-400 text-xs" data-ar="النتيجة" data-en="Result">النتيجة</span>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ order.result }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400">
+                <i class="ri-inbox-line text-3xl mb-2"></i>
+                <p data-ar="لا توجد عمليات بعد" data-en="No orders yet">لا توجد عمليات بعد</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            <h3 class="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="ri-smartphone-line text-slate-400"></i>
+                <span data-ar="حالة الأجهزة" data-en="Device Status">حالة الأجهزة</span>
+            </h3>
+            <a href="/admin/settings#phones" class="text-sm text-primary-500 hover:text-primary-600" data-ar="إدارة" data-en="Manage">إدارة</a>
+        </div>
+        <div class="p-4">
+            {% for phone in phones %}
+            <div class="flex items-center justify-between p-4 rounded-xl {% if loop.index % 2 == 0 %}bg-slate-50 dark:bg-slate-700{% endif %} mb-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <i class="ri-smartphone-line text-slate-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800">{{ phone.name or phone.phone_id[:8] }}</p>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span class="status-dot {% if phone.status == 'online' %}online{% else %}offline{% endif %}"></span>
+                            <span>{{ phone.status }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-left">
+                    <div class="flex items-center gap-1 {% if phone.battery_level > 50 %}text-success-500{% elif phone.battery_level > 20 %}text-warning-500{% else %}text-danger-500{% endif %}">
+                        <i class="{% if phone.battery_level > 50 %}ri-battery-2-fill{% elif phone.battery_level > 20 %}ri-battery-low-line{% else %}ri-battery-line{% endif %}"></i>
+                        <span class="font-medium">{{ phone.battery_level }}%</span>
+                    </div>
+                    <p class="text-xs text-slate-400">{{ phone.jobs_completed }}/{{ phone.jobs_failed }} <span data-ar="مهام" data-en="jobs">مهام</span></p>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400">
+                <i class="ri-smartphone-line text-3xl mb-2"></i>
+                <p data-ar="لا توجد أجهزة متصلة" data-en="No devices connected">لا توجد أجهزة متصلة</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cardsChart, revenueChart, statusChart, paymentChart;
+
+async function loadChartData() {
+    try {
+        const response = await fetch('/admin/api/chart-data');
+        const data = await response.json();
+        
+        const isDark = document.getElementById('html-root').classList.contains('dark');
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+        const gridColor = isDark ? '#334155' : '#e2e8f0';
+        
+        Chart.defaults.color = textColor;
+        Chart.defaults.borderColor = gridColor;
+        
+        const lang = localStorage.getItem('lang') || 'ar';
+        const labels = data.daily.map(d => lang === 'ar' ? d.day_name_ar : d.day_name_en);
+        
+        if (cardsChart) cardsChart.destroy();
+        const cardsCtx = document.getElementById('cardsChart').getContext('2d');
+        cardsChart = new Chart(cardsCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: lang === 'ar' ? 'البطاقات' : 'Cards',
+                    data: data.daily.map(d => d.cards),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3b82f6',
+                    pointRadius: 4
+                }, {
+                    label: lang === 'ar' ? 'ناجحة' : 'Verified',
+                    data: data.daily.map(d => d.cards_verified),
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#22c55e',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', rtl: lang === 'ar' } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        
+        if (revenueChart) revenueChart.destroy();
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: lang === 'ar' ? 'البطاقات' : 'Cards',
+                    data: data.daily.map(d => d.cards_amount),
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8
+                }, {
+                    label: 'Xena',
+                    data: data.daily.map(d => d.xena_amount),
+                    backgroundColor: '#a855f7',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', rtl: lang === 'ar' } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { callback: v => (v/1000) + 'K' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        
+        if (statusChart) statusChart.destroy();
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusLabels = {
+            'verified': lang === 'ar' ? 'ناجحة' : 'Verified',
+            'pending': lang === 'ar' ? 'قيد الانتظار' : 'Pending',
+            'failed': lang === 'ar' ? 'فاشلة' : 'Failed',
+            'processing': lang === 'ar' ? 'قيد المعالجة' : 'Processing',
+            'rejected': lang === 'ar' ? 'مرفوضة' : 'Rejected'
+        };
+        statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data.status).map(k => statusLabels[k] || k),
+                datasets: [{
+                    data: Object.values(data.status),
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', rtl: lang === 'ar' } },
+                cutout: '60%'
+            }
+        });
+        
+        if (paymentChart) paymentChart.destroy();
+        const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+        const paymentLabels = { 'qi_card': 'QI Card', 'zaincash': 'ZainCash' };
+        paymentChart = new Chart(paymentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data.payments).map(k => paymentLabels[k] || k),
+                datasets: [{
+                    data: Object.values(data.payments),
+                    backgroundColor: ['#22c55e', '#3b82f6'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', rtl: lang === 'ar' } },
+                cutout: '60%'
+            }
+        });
+        
+        const cardsChange = document.getElementById('cards-change');
+        if (cardsChange && data.comparison) {
+            const change = data.comparison.cards_change;
+            if (change > 0) {
+                cardsChange.innerHTML = `<i class="ri-arrow-up-line"></i> ${change}%`;
+                cardsChange.className = 'text-xs font-medium text-success-500';
+            } else if (change < 0) {
+                cardsChange.innerHTML = `<i class="ri-arrow-down-line"></i> ${Math.abs(change)}%`;
+                cardsChange.className = 'text-xs font-medium text-danger-500';
+            } else {
+                cardsChange.innerHTML = `<i class="ri-subtract-line"></i> 0%`;
+                cardsChange.className = 'text-xs font-medium text-slate-400';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error loading chart data:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadChartData);
+
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+            loadChartData();
+        }
+    });
+});
+observer.observe(document.getElementById('html-root'), { attributes: true });
+</script>
+{% endblock %}

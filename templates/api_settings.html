@@ -1,0 +1,234 @@
+{% extends "base_simple.html" %}
+
+{% block title %}إعدادات API{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/admin/settings" class="inline-flex items-center gap-2 text-slate-500 hover:text-primary-600 transition-colors">
+        <i class="ri-arrow-right-line"></i>
+        <span data-ar="رجوع للإعدادات" data-en="Back to Settings">رجوع للإعدادات</span>
+    </a>
+</div>
+
+<div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 mb-6 text-white">
+    <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
+            <i class="ri-plug-line text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold" data-ar="واجهة برمجة التطبيقات (API)" data-en="API Settings">واجهة برمجة التطبيقات (API)</h1>
+            <p class="text-white/80" data-ar="شارك هذه المعلومات مع المواقع الأخرى للاتصال بنظامك" data-en="Share this info with other sites to connect to your system">شارك هذه المعلومات مع المواقع الأخرى للاتصال بنظامك</p>
+        </div>
+        <span class="mr-auto px-4 py-2 text-sm rounded-full bg-white/20" data-ar="نشط" data-en="Active">نشط</span>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 mb-6">
+    <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <i class="ri-server-line text-indigo-500"></i>
+        <span data-ar="رابط API الخاص بك" data-en="Your API Endpoint">رابط API الخاص بك</span>
+    </h3>
+    
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="رابط API الأساسي" data-en="Base API URL">رابط API الأساسي</label>
+            <div class="flex gap-2">
+                <input type="text" id="api-base-url" value="{{ request.host_url }}api/v1" readonly class="flex-1 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white bg-slate-50 text-sm font-mono" dir="ltr">
+                <button type="button" onclick="copyToClipboard('api-base-url')" class="btn btn-secondary px-4">
+                    <i class="ri-file-copy-line"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div>
+            <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="مفتاح API الخاص بك" data-en="Your API Key">مفتاح API الخاص بك</label>
+            <div class="flex gap-2">
+                <input type="password" id="your-api-key" value="{{ api_config.get('your_api_key', '') }}" readonly class="flex-1 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white bg-slate-50 text-sm font-mono" dir="ltr">
+                <button type="button" onclick="togglePassword('your-api-key')" class="btn btn-secondary px-4">
+                    <i class="ri-eye-line"></i>
+                </button>
+                <button type="button" onclick="copyToClipboard('your-api-key')" class="btn btn-secondary px-4">
+                    <i class="ri-file-copy-line"></i>
+                </button>
+                <button type="button" onclick="regenerateApiKey()" class="btn btn-danger px-4">
+                    <i class="ri-refresh-line"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2" data-ar="استخدم هذا المفتاح في Header: Authorization: Bearer YOUR_API_KEY" data-en="Use this key in Header: Authorization: Bearer YOUR_API_KEY">استخدم هذا المفتاح في Header: Authorization: Bearer YOUR_API_KEY</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                <i class="ri-gamepad-line text-white text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-slate-800 dark:text-white">Xena Live API</h4>
+                <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="نقاط نهاية طلبات Xena" data-en="Xena Orders Endpoints">نقاط نهاية طلبات Xena</p>
+            </div>
+        </div>
+        <div class="space-y-3">
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">POST</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/xena/order</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="إنشاء طلب Xena جديد" data-en="Create new Xena order">إنشاء طلب Xena جديد</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">GET</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/xena/status/{id}</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="التحقق من حالة الطلب" data-en="Check order status">التحقق من حالة الطلب</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">GET</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/xena/balance</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="الحصول على الرصيد المتاح" data-en="Get available balance">الحصول على الرصيد المتاح</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                <i class="ri-sim-card-line text-white text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-slate-800 dark:text-white">Asiacell API</h4>
+                <p class="text-sm text-slate-500 dark:text-slate-400" data-ar="نقاط نهاية الشحن" data-en="Recharge Endpoints">نقاط نهاية الشحن</p>
+            </div>
+        </div>
+        <div class="space-y-3">
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">POST</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/recharge</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="إرسال بطاقة للشحن" data-en="Submit card for recharge">إرسال بطاقة للشحن</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">GET</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/recharge/status/{id}</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="التحقق من حالة الشحن" data-en="Check recharge status">التحقق من حالة الشحن</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">GET</span>
+                    <code class="text-sm text-slate-700 dark:text-slate-300">/api/v1/cards/pending</code>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" data-ar="قائمة البطاقات المعلقة" data-en="List pending cards">قائمة البطاقات المعلقة</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 mb-6">
+    <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <i class="ri-settings-4-line text-slate-400"></i>
+        <span data-ar="إعدادات متقدمة" data-en="Advanced Settings">إعدادات متقدمة</span>
+    </h3>
+    
+    <form method="POST" action="/admin/settings/api-config" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="Webhook URL (إشعارات الطلبات)" data-en="Webhook URL (Order Notifications)">Webhook URL (إشعارات الطلبات)</label>
+                <input type="url" name="webhook_url" value="{{ api_config.get('webhook_url', '') }}" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm" placeholder="https://your-site.com/webhook">
+            </div>
+            <div>
+                <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="مفتاح Webhook السري" data-en="Webhook Secret">مفتاح Webhook السري</label>
+                <input type="password" name="webhook_secret" value="{{ api_config.get('webhook_secret', '') }}" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm" placeholder="whsec_xxxxxxxx">
+            </div>
+            <div>
+                <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="الحد الأقصى للطلبات/دقيقة" data-en="Rate Limit (requests/min)">الحد الأقصى للطلبات/دقيقة</label>
+                <input type="number" name="rate_limit" value="{{ api_config.get('rate_limit', '60') }}" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm" placeholder="60">
+            </div>
+            <div>
+                <label class="block text-sm text-slate-600 dark:text-slate-300 mb-2" data-ar="النطاقات المسموحة (CORS)" data-en="Allowed Origins (CORS)">النطاقات المسموحة (CORS)</label>
+                <input type="text" name="allowed_origins" value="{{ api_config.get('allowed_origins', '*') }}" class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm" placeholder="* or https://example.com">
+            </div>
+        </div>
+        
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="ri-save-line"></i>
+                <span data-ar="حفظ الإعدادات" data-en="Save Settings">حفظ الإعدادات</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+    <h3 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <i class="ri-code-s-slash-line text-slate-400"></i>
+        <span data-ar="مثال على الاستخدام" data-en="Usage Example">مثال على الاستخدام</span>
+    </h3>
+    
+    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto" dir="ltr">
+        <pre class="text-sm text-green-400"><code>curl -X POST "{{ request.host_url }}api/v1/xena/order" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "player_id": "123456789",
+    "amount": 100,
+    "game": "pubg"
+  }'</code></pre>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(inputId) {
+    const input = document.getElementById(inputId);
+    const originalType = input.type;
+    input.type = 'text';
+    input.select();
+    document.execCommand('copy');
+    input.type = originalType;
+    
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 left-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    toast.textContent = localStorage.getItem('lang') === 'en' ? 'Copied!' : 'تم النسخ!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const btn = input.nextElementSibling;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="ri-eye-off-line"></i>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="ri-eye-line"></i>';
+    }
+}
+
+function regenerateApiKey() {
+    const msg = localStorage.getItem('lang') === 'en' 
+        ? 'Are you sure? This will invalidate the old key and all connected services will need to update.' 
+        : 'هل أنت متأكد؟ سيتم إلغاء المفتاح القديم وستحتاج جميع الخدمات المتصلة للتحديث.';
+    
+    if (confirm(msg)) {
+        fetch('/admin/settings/regenerate-api-key', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('your-api-key').value = data.new_key;
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 left-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                toast.textContent = localStorage.getItem('lang') === 'en' ? 'New API key generated!' : 'تم إنشاء مفتاح API جديد!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            });
+    }
+}
+</script>
+{% endblock %}

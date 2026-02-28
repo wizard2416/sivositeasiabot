@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sivosys - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #4338ca 50%, #6366f1 75%, #a855f7 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo-glow {
+            box-shadow: 0 0 60px rgba(168, 85, 247, 0.4), 0 0 100px rgba(99, 102, 241, 0.2);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl floating"></div>
+        <div class="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl floating" style="animation-delay: -3s;"></div>
+    </div>
+    
+    <div class="glass-card rounded-3xl p-8 md:p-12 w-full max-w-md relative z-10 shadow-2xl">
+        <div class="text-center mb-8">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-2xl overflow-hidden logo-glow">
+                <img src="/static/images/sivosys-logo.jpg" alt="Sivosys" class="w-full h-full object-cover">
+            </div>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">Sivosys</h1>
+            <p class="text-slate-500" id="subtitle-ar">لوحة التحكم الإدارية</p>
+            <p class="text-slate-500 hidden" id="subtitle-en">Admin Control Panel</p>
+        </div>
+        
+        <form method="POST" action="/admin/login" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2" id="label-ar">كلمة المرور</label>
+                <label class="block text-sm font-medium text-slate-700 mb-2 hidden" id="label-en">Password</label>
+                <div class="relative">
+                    <input type="password" name="password" 
+                        class="w-full px-4 py-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:outline-none input-focus text-lg transition-all"
+                        placeholder="••••••••" required autofocus>
+                    <i class="ri-lock-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"></i>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-gradient w-full py-4 rounded-xl text-white font-semibold text-lg flex items-center justify-center gap-2">
+                <span id="btn-ar">تسجيل الدخول</span>
+                <span class="hidden" id="btn-en">Login</span>
+                <i class="ri-arrow-left-line rtl:rotate-180"></i>
+            </button>
+        </form>
+        
+        <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+            <button onclick="toggleLang()" class="text-sm text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-center gap-2 mx-auto">
+                <i class="ri-translate-2"></i>
+                <span id="lang-toggle">English</span>
+            </button>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <p class="text-xs text-slate-400">Powered by Sivosys &copy; 2026</p>
+        </div>
+    </div>
+    
+    <script>
+        let isArabic = true;
+        function toggleLang() {
+            isArabic = !isArabic;
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            document.documentElement.lang = isArabic ? 'ar' : 'en';
+            
+            document.getElementById('subtitle-ar').classList.toggle('hidden', !isArabic);
+            document.getElementById('subtitle-en').classList.toggle('hidden', isArabic);
+            document.getElementById('label-ar').classList.toggle('hidden', !isArabic);
+            document.getElementById('label-en').classList.toggle('hidden', isArabic);
+            document.getElementById('btn-ar').classList.toggle('hidden', !isArabic);
+            document.getElementById('btn-en').classList.toggle('hidden', isArabic);
+            document.getElementById('lang-toggle').textContent = isArabic ? 'English' : 'العربية';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+{% extends "base_simple.html" %}
+
+{% block title %}أسعار التحويل{% endblock %}
+{% block page_title %}<span data-ar="أسعار العملات" data-en="Coin Rates">أسعار العملات</span>{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-6">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-full bg-warning-100 flex items-center justify-center">
+                <i class="ri-exchange-line text-xl text-warning-600"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">أسعار تحويل العملات</h2>
+                <p class="text-sm text-slate-500">تعديل أسعار تحويل الدينار إلى عملات</p>
+            </div>
+        </div>
+        
+        <div class="space-y-4">
+            {% for rate in rates %}
+            <form method="POST" action="/admin/coin-rates/update" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                <input type="hidden" name="payment_source" value="{{ rate.payment_source }}">
+                
+                <div class="flex items-center gap-3 mb-4">
+                    {% if rate.payment_source == 'asiacell' %}
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="ri-sim-card-line text-red-600"></i>
+                    </div>
+                    <span class="font-bold text-slate-800 dark:text-white">آسيا سيل</span>
+                    {% elif rate.payment_source == 'qi_card' %}
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="ri-bank-card-line text-blue-600"></i>
+                    </div>
+                    <span class="font-bold text-slate-800 dark:text-white">QI Card</span>
+                    {% elif rate.payment_source == 'zaincash' %}
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="ri-wallet-3-line text-green-600"></i>
+                    </div>
+                    <span class="font-bold text-slate-800 dark:text-white">ZainCash</span>
+                    {% elif rate.payment_source == 'vodafone' %}
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <span class="text-red-600 text-lg">🔴</span>
+                    </div>
+                    <span class="font-bold text-slate-800 dark:text-white">Vodafone Cash 🔴</span>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">المبلغ الأصلي</label>
+                        <input type="number" name="source_amount" value="{{ rate.source_amount }}" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">عدد العملات</label>
+                        <input type="number" name="coin_amount" value="{{ rate.coin_amount }}" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم العملة</label>
+                        <input type="text" name="currency_name" value="{{ rate.currency_name }}" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none" required>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-4">
+                    <p class="text-sm text-slate-500">
+                        {{ "{:,}".format(rate.source_amount) }} {{ rate.currency_name }} = {{ "{:,}".format(rate.coin_amount) }} عملة
+                    </p>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-save-line"></i>
+                        حفظ
+                    </button>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-warning-500 to-orange-600 rounded-2xl p-6 text-white">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                <i class="ri-exchange-funds-line text-xl text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold">تحويل جميع الأرصدة إلى عملات</h3>
+                <p class="text-sm text-white/80">سيتم إرسال إشعار لجميع المستخدمين</p>
+            </div>
+        </div>
+        
+        <form method="POST" action="/admin/convert-balances" class="flex flex-col md:flex-row gap-4" onsubmit="return confirm('هل أنت متأكد؟ سيتم تحويل جميع أرصدة الدينار إلى عملات وإرسال إشعار لجميع المستخدمين.')">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-white/80 mb-1">معدل التحويل (عملة لكل 1000 دينار)</label>
+                <input type="number" name="rate" value="5500" class="w-full px-4 py-2 rounded-xl border border-white/30 bg-white/10 text-white placeholder-white/50 focus:border-white focus:ring-2 focus:ring-white/20 outline-none" required>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="px-6 py-2 rounded-xl bg-white text-warning-600 font-bold hover:bg-white/90 transition-colors">
+                    <i class="ri-exchange-line"></i>
+                    تحويل الآن
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="text-center">
+        <a href="/admin/settings" class="btn btn-secondary">
+            <i class="ri-arrow-right-line"></i>
+            العودة للإعدادات
+        </a>
+    </div>
+</div>
+{% endblock %}
